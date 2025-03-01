@@ -3,7 +3,8 @@
 This repository contains a collection of financial calculators designed to assist students in Finance 301 at UMass Amherst. The calculators cover key financial concepts such as lump sum value, annuities, perpetuities, and tax calculations.
 
 ## Live Website
-This project is actively hosted at: [Finance 301 Calculators](https://finance301-calculators.vercel.app/)
+This project is actively hosted at: <a href="(https://finance301-calculators.vercel.app/)" target="_blank">Finance 301 Calculators</a>
+
 
 ## Features
 - **Lump Sum Calculator**: Computes the future or present value of a single cash flow.
