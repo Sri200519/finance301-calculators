@@ -6,7 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata = {
-  title: "Finance Calculator Hub",
+  title: "Finance 301 Calculator Hub",
   description: "A comprehensive collection of financial calculators",
     generator: 'v0.dev'
 }
