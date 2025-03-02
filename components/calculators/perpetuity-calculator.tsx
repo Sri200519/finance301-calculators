@@ -5,15 +5,47 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { InputGroup } from "@/components/ui/input-group";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, RefreshCw } from "lucide-react";
 
 export function PerpetuityCalculator() {
+  // Initialize state with values from localStorage or defaults
   const [payment, setPayment] = useState<string>("");
   const [rate, setRate] = useState<string>("");
   const [growthRate, setGrowthRate] = useState<string>("");
   const [result, setResult] = useState<number | null>(null);
   const [perpetuityType, setPerpetuityType] = useState<"normal" | "growth">("normal");
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("calculator");
+
+  // Load saved state from localStorage on component mount
+  useEffect(() => {
+    const savedState = localStorage.getItem("perpetuityCalculatorState");
+    if (savedState) {
+      try {
+        const parsedState = JSON.parse(savedState);
+        setPayment(parsedState.payment || "");
+        setRate(parsedState.rate || "");
+        setGrowthRate(parsedState.growthRate || "");
+        setPerpetuityType(parsedState.perpetuityType || "normal");
+        setActiveTab(parsedState.activeTab || "calculator");
+      } catch (e) {
+        console.error("Error parsing saved state:", e);
+        // If there's an error parsing, we'll just use the default values
+      }
+    }
+  }, []);
+
+  // Save state to localStorage whenever relevant state changes
+  useEffect(() => {
+    const stateToSave = {
+      payment,
+      rate,
+      growthRate,
+      perpetuityType,
+      activeTab
+    };
+    localStorage.setItem("perpetuityCalculatorState", JSON.stringify(stateToSave));
+  }, [payment, rate, growthRate, perpetuityType, activeTab]);
 
   // Validate inputs
   const validateInputs = () => {
@@ -80,16 +112,42 @@ export function PerpetuityCalculator() {
     }
   };
 
+  // Reset all form values and clear localStorage
+  const handleReset = () => {
+    setPayment("");
+    setRate("");
+    setGrowthRate("");
+    setPerpetuityType("normal");
+    setResult(null);
+    setError(null);
+    localStorage.removeItem("perpetuityCalculatorState");
+  };
+
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Perpetuity Calculator</h1>
-        <p className="mt-2 text-gray-500 dark:text-gray-400">
-          Calculate the present value of normal perpetuities or constant growth perpetuities.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Perpetuity Calculator</h1>
+          <p className="mt-2 text-gray-500 dark:text-gray-400">
+            Calculate the present value of normal perpetuities or constant growth perpetuities.
+          </p>
+        </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleReset}
+          className="flex items-center gap-1"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Reset
+        </Button>
       </div>
 
-      <Tabs defaultValue="calculator" className="w-full">
+      <Tabs 
+        value={activeTab} 
+        onValueChange={(value) => setActiveTab(value)} 
+        className="w-full"
+      >
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="calculator">Calculator</TabsTrigger>
           <TabsTrigger value="notes">Notes & Formulas</TabsTrigger>

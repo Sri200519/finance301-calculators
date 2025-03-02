@@ -5,19 +5,45 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { InputGroup } from "@/components/ui/input-group";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, RotateCcw } from "lucide-react";
 
 export function AnnuityCalculator() {
-  const [payment, setPayment] = useState<string>("");
-  const [rate, setRate] = useState<string>("");
-  const [periods, setPeriods] = useState<string>("");
+  // State variables with localStorage initialization
+  const [payment, setPayment] = useState<string>(() => 
+    typeof window !== 'undefined' ? localStorage.getItem('annuity_payment') || "" : "");
+  const [rate, setRate] = useState<string>(() => 
+    typeof window !== 'undefined' ? localStorage.getItem('annuity_rate') || "" : "");
+  const [periods, setPeriods] = useState<string>(() => 
+    typeof window !== 'undefined' ? localStorage.getItem('annuity_periods') || "" : "");
   const [result, setResult] = useState<number | null>(null);
-  const [solveFor, setSolveFor] = useState<"presentValue" | "futureValue" | "paymentPV" | "paymentFV">("presentValue");
-  const [annuityType, setAnnuityType] = useState<"ordinary" | "due">("ordinary");
-  const [compoundFrequency, setCompoundFrequency] = useState<"annual" | "semiannual" | "quarterly" | "monthly" | "custom">("annual");
-  const [customFrequency, setCustomFrequency] = useState<string>("");
-  const [pvOrFv, setPvOrFv] = useState<string>(""); 
-  const [error, setError] = useState<string | null>(null); 
+  const [solveFor, setSolveFor] = useState<"presentValue" | "futureValue" | "paymentPV" | "paymentFV">(() => 
+    (typeof window !== 'undefined' ? localStorage.getItem('annuity_solveFor') : null) as any || "presentValue");
+  const [annuityType, setAnnuityType] = useState<"ordinary" | "due">(() => 
+    (typeof window !== 'undefined' ? localStorage.getItem('annuity_type') : null) as any || "ordinary");
+  const [compoundFrequency, setCompoundFrequency] = useState<"annual" | "semiannual" | "quarterly" | "monthly" | "custom">(() => 
+    (typeof window !== 'undefined' ? localStorage.getItem('annuity_compoundFreq') : null) as any || "annual");
+  const [customFrequency, setCustomFrequency] = useState<string>(() => 
+    typeof window !== 'undefined' ? localStorage.getItem('annuity_customFreq') || "" : "");
+  const [pvOrFv, setPvOrFv] = useState<string>(() => 
+    typeof window !== 'undefined' ? localStorage.getItem('annuity_pvOrFv') || "" : "");
+  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string>(() => 
+    typeof window !== 'undefined' ? localStorage.getItem('annuity_activeTab') || "calculator" : "calculator");
+
+  // Update localStorage when state changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('annuity_payment', payment);
+      localStorage.setItem('annuity_rate', rate);
+      localStorage.setItem('annuity_periods', periods);
+      localStorage.setItem('annuity_solveFor', solveFor);
+      localStorage.setItem('annuity_type', annuityType);
+      localStorage.setItem('annuity_compoundFreq', compoundFrequency);
+      localStorage.setItem('annuity_customFreq', customFrequency);
+      localStorage.setItem('annuity_pvOrFv', pvOrFv);
+      localStorage.setItem('annuity_activeTab', activeTab);
+    }
+  }, [payment, rate, periods, solveFor, annuityType, compoundFrequency, customFrequency, pvOrFv, activeTab]);
 
   const getCompoundingPeriods = () => {
     switch (compoundFrequency) {
@@ -33,6 +59,32 @@ export function AnnuityCalculator() {
         return Number.parseFloat(customFrequency) || 1;
       default:
         return 1;
+    }
+  };
+
+  const resetCalculator = () => {
+    setPayment("");
+    setRate("");
+    setPeriods("");
+    setPvOrFv("");
+    setCustomFrequency("");
+    setSolveFor("presentValue");
+    setAnnuityType("ordinary");
+    setCompoundFrequency("annual");
+    setResult(null);
+    setError(null);
+    
+    // Clear localStorage for this calculator
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('annuity_payment');
+      localStorage.removeItem('annuity_rate');
+      localStorage.removeItem('annuity_periods');
+      localStorage.removeItem('annuity_solveFor');
+      localStorage.removeItem('annuity_type');
+      localStorage.removeItem('annuity_compoundFreq');
+      localStorage.removeItem('annuity_customFreq');
+      localStorage.removeItem('annuity_pvOrFv');
+      // Don't remove activeTab to preserve the tab state
     }
   };
 
@@ -72,6 +124,11 @@ export function AnnuityCalculator() {
           : (FV * rAdjusted) / ((Math.pow(1 + rAdjusted, nAdjusted) - 1) * (1 + rAdjusted)); // Annuity Due
         setResult(paymentAmount);
       }
+      
+      // Save result to localStorage
+      if (typeof window !== 'undefined' && result !== null) {
+        localStorage.setItem('annuity_lastResult', result.toString());
+      }
     } catch (error) {
       console.error("Calculation error:", error);
       setError("An error occurred during calculation. Please check your inputs.");
@@ -80,8 +137,12 @@ export function AnnuityCalculator() {
   };
 
   const validateInputs = () => {
-    if (isNaN(Number.parseFloat(payment))) {
+    if ((solveFor === "presentValue" || solveFor === "futureValue") && isNaN(Number.parseFloat(payment))) {
       setError("Please enter a valid number for Payment Amount.");
+      return false;
+    }
+    if ((solveFor === "paymentPV" || solveFor === "paymentFV") && isNaN(Number.parseFloat(pvOrFv))) {
+      setError("Please enter a valid number for Value.");
       return false;
     }
     if (isNaN(Number.parseFloat(rate))) {
@@ -101,23 +162,49 @@ export function AnnuityCalculator() {
   };
 
   useEffect(() => {
-    if (payment !== "" && rate !== "" && periods !== "") {
+    // Check if we have enough values to calculate
+    const shouldCalculate = (
+      (solveFor === "presentValue" || solveFor === "futureValue") && payment !== "" && rate !== "" && periods !== "" ||
+      (solveFor === "paymentPV" || solveFor === "paymentFV") && pvOrFv !== "" && rate !== "" && periods !== ""
+    );
+    
+    if (shouldCalculate) {
       if (validateInputs()) {
         calculateAnnuity();
       }
     }
   }, [payment, rate, periods, solveFor, annuityType, compoundFrequency, customFrequency, pvOrFv]);
 
+  // Try to restore previous result on initial load
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedResult = localStorage.getItem('annuity_lastResult');
+      if (savedResult && !isNaN(Number.parseFloat(savedResult))) {
+        setResult(Number.parseFloat(savedResult));
+      }
+    }
+  }, []);
+
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Annuity Calculator</h1>
-        <p className="mt-2 text-gray-500 dark:text-gray-400">
-          Calculate present value, future value, or payment for annuities.
-        </p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Annuity Calculator</h1>
+          <p className="mt-2 text-gray-500 dark:text-gray-400">
+            Calculate present value, future value, or payment for annuities.
+          </p>
+        </div>
+        <Button variant="outline" size="sm" onClick={resetCalculator} className="flex items-center gap-1">
+          <RotateCcw className="h-4 w-4" />
+          Reset
+        </Button>
       </div>
 
-      <Tabs defaultValue="calculator" className="w-full">
+      <Tabs 
+        defaultValue={activeTab} 
+        className="w-full"
+        onValueChange={(value) => setActiveTab(value)}
+      >
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="calculator">Calculator</TabsTrigger>
           <TabsTrigger value="notes">Notes & Formulas</TabsTrigger>

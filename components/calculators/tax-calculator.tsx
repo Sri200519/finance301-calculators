@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { InputGroup } from "@/components/ui/input-group";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, RefreshCw } from "lucide-react";
 
 export function TaxCalculator() {
   // State for tax brackets
@@ -21,6 +21,43 @@ export function TaxCalculator() {
 
   // State for error messages
   const [error, setError] = useState<string | null>(null);
+
+  // Load saved data from localStorage on component mount
+  useEffect(() => {
+    const savedIncome = localStorage.getItem("taxCalculator_income");
+    const savedBrackets = localStorage.getItem("taxCalculator_brackets");
+
+    if (savedIncome) {
+      setIncome(savedIncome);
+    }
+
+    if (savedBrackets) {
+      try {
+        setBrackets(JSON.parse(savedBrackets));
+      } catch (e) {
+        console.error("Error parsing saved brackets:", e);
+        setBrackets([]);
+      }
+    }
+  }, []);
+
+  // Save data to localStorage whenever income or brackets change
+  useEffect(() => {
+    localStorage.setItem("taxCalculator_income", income);
+    localStorage.setItem("taxCalculator_brackets", JSON.stringify(brackets));
+  }, [income, brackets]);
+
+  // Reset all calculator data
+  const resetCalculator = () => {
+    setIncome("");
+    setBrackets([]);
+    setTotalTax(null);
+    setError(null);
+    
+    // Clear localStorage
+    localStorage.removeItem("taxCalculator_income");
+    localStorage.removeItem("taxCalculator_brackets");
+  };
 
   // Add a new tax bracket
   const addBracket = () => {
@@ -128,11 +165,22 @@ export function TaxCalculator() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Tax Calculator</h1>
-        <p className="mt-2 text-gray-500 dark:text-gray-400">
-          Calculate total tax owed based on a gradual tax system.
-        </p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Tax Calculator</h1>
+          <p className="mt-2 text-gray-500 dark:text-gray-400">
+            Calculate total tax owed based on a gradual tax system.
+          </p>
+        </div>
+        <Button 
+          onClick={resetCalculator}
+          variant="outline"
+          className="flex items-center gap-2"
+          title="Reset Calculator"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Reset
+        </Button>
       </div>
 
       <Tabs defaultValue="calculator" className="w-full">

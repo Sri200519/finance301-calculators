@@ -3,20 +3,67 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { InputGroup } from "@/components/ui/input-group";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, RotateCcw } from "lucide-react";
 
 export function CompoundInterestCalculator() {
-  const [principal, setPrincipal] = useState<string>("");
-  const [rate, setRate] = useState<string>("");
-  const [time, setTime] = useState<string>("");
-  const [compoundFrequency, setCompoundFrequency] = useState<string>("yearly");
-  const [customFrequency, setCustomFrequency] = useState<string>("");
-  const [futureValue, setFutureValue] = useState<string>("");
-  const [solveFor, setSolveFor] = useState<"FV" | "PV" | "r" | "n">("FV");
+  // Load saved state from localStorage on initial render
+  const loadSavedState = () => {
+    try {
+      const savedState = localStorage.getItem("compoundInterestState");
+      if (savedState) {
+        return JSON.parse(savedState);
+      }
+    } catch (error) {
+      console.error("Error loading saved state:", error);
+    }
+    
+    // Default values if no saved state or error occurs
+    return {
+      principal: "",
+      rate: "",
+      time: "",
+      compoundFrequency: "yearly",
+      customFrequency: "",
+      futureValue: "",
+      solveFor: "FV",
+      activeTab: "calculator"
+    };
+  };
+
+  const savedState = loadSavedState();
+
+  const [principal, setPrincipal] = useState<string>(savedState.principal);
+  const [rate, setRate] = useState<string>(savedState.rate);
+  const [time, setTime] = useState<string>(savedState.time);
+  const [compoundFrequency, setCompoundFrequency] = useState<string>(savedState.compoundFrequency);
+  const [customFrequency, setCustomFrequency] = useState<string>(savedState.customFrequency);
+  const [futureValue, setFutureValue] = useState<string>(savedState.futureValue);
+  const [solveFor, setSolveFor] = useState<"FV" | "PV" | "r" | "n">(savedState.solveFor as "FV" | "PV" | "r" | "n");
+  const [activeTab, setActiveTab] = useState<string>(savedState.activeTab);
   const [result, setResult] = useState<number | null>(null);
   const [compoundInterest, setCompoundInterest] = useState<number | null>(null);
   const [ear, setEar] = useState<number | null>(null);
 
+  // Save state to localStorage whenever relevant state changes
+  useEffect(() => {
+    const stateToSave = {
+      principal,
+      rate,
+      time,
+      compoundFrequency,
+      customFrequency,
+      futureValue,
+      solveFor,
+      activeTab
+    };
+    
+    try {
+      localStorage.setItem("compoundInterestState", JSON.stringify(stateToSave));
+    } catch (error) {
+      console.error("Error saving state:", error);
+    }
+  }, [principal, rate, time, compoundFrequency, customFrequency, futureValue, solveFor, activeTab]);
+  
   const calculateCompoundInterest = () => {
     try {
       let PV = parseFloat(principal);
@@ -109,8 +156,6 @@ export function CompoundInterestCalculator() {
     }
   };
   
-  
-
   useEffect(() => {
     const canCalculate = 
       (solveFor === "FV" && principal !== "" && rate !== "" && time !== "") ||
@@ -123,15 +168,45 @@ export function CompoundInterestCalculator() {
     }
   }, [principal, rate, time, futureValue, compoundFrequency, customFrequency, solveFor]);
 
+  // Handle tab change
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+  };
+
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Value of Lump Sums Calculator</h1>
-        <p className="mt-2 text-gray-500 dark:text-gray-400">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Value of Lump Sums Calculator</h1>
+          <p className="mt-2 text-gray-500 dark:text-gray-400">
           Calculate how your lump sums grow over time with compound interest.
-        </p>
+          </p>
+        </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => {
+            // Clear localStorage and reset state
+            localStorage.removeItem("compoundInterestState");
+            setPrincipal("");
+            setRate("");
+            setTime("");
+            setCompoundFrequency("yearly");
+            setCustomFrequency("");
+            setFutureValue("");
+            setSolveFor("FV");
+            setResult(null);
+            setCompoundInterest(null);
+            setEar(null);
+          }} 
+          className="flex items-center gap-1"
+        >
+          <RotateCcw className="h-4 w-4" />
+          Reset
+        </Button>
       </div>
-      <Tabs defaultValue="calculator" className="w-full">
+
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="calculator">Calculator</TabsTrigger>
           <TabsTrigger value="notes">Notes & Formulas</TabsTrigger>
@@ -257,6 +332,8 @@ export function CompoundInterestCalculator() {
                     />
                   )}
                 </div>
+
+                
               </CardContent>
             </Card>
             <Card>
@@ -283,8 +360,6 @@ export function CompoundInterestCalculator() {
                         : `$${result.toFixed(2)}`
                       : "—"}
                   </div>
-
-                  
 
                   <p className="mt-2 text-center text-sm text-gray-500 dark:text-gray-400">
                     {solveFor === "FV"
@@ -380,7 +455,7 @@ export function CompoundInterestCalculator() {
             <div>
               <h2 className="text-2xl font-semibold">Examples</h2>
               <p className="text-lg text-gray-500 dark:text-gray-400">
-                Let’s go through a couple of examples to see how compound interest works:
+                Let's go through a couple of examples to see how compound interest works:
               </p>
 
               <h3 className="text-xl font-semibold">Example 1: Annual Compounding</h3>
@@ -410,8 +485,8 @@ export function CompoundInterestCalculator() {
               <h2 className="text-2xl font-semibold">Tips for Using the Calculator</h2>
               <ul className="list-inside list-disc text-lg text-gray-500 dark:text-gray-400">
                 <li>Always double-check the units for the time period and rate. Make sure the rate is in decimal form (e.g., 5% as 0.05).</li>
-                <li>If solving for the future value, ensure you’ve entered the principal amount, interest rate, and time period correctly.</li>
-                <li>If you’re unsure about the frequency of compounding, choose a standard option like yearly or monthly to start with.</li>
+                <li>If solving for the future value, ensure you've entered the principal amount, interest rate, and time period correctly.</li>
+                <li>If you're unsure about the frequency of compounding, choose a standard option like yearly or monthly to start with.</li>
                 <li>Be aware that higher compounding frequencies (e.g., daily or continuously) lead to slightly higher results due to more frequent application of interest.</li>
               </ul>
             </div>
@@ -424,7 +499,6 @@ export function CompoundInterestCalculator() {
             </div>
           </div>
         </TabsContent>
-
       </Tabs>
     </div>
   );

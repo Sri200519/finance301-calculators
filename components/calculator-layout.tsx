@@ -6,12 +6,14 @@ import { CompoundInterestCalculator } from "@/components/calculators/lumpsum-cal
 import { AnnuityCalculator } from "@/components/calculators/annuity-calculator"
 import { PerpetuityCalculator } from "./calculators/perpetuity-calculator"
 import { TaxCalculator } from "./calculators/tax-calculator"
+import { CouponBondCalculator } from "./calculators/bond-calculator"
 
 export type CalculatorType =
   | "lumpsum-calculator"
   | "annuity-calculator"
   | "perpetuity-calculator"
   | "tax-calculator"
+  | "bond-calculator"
 
 export function CalculatorLayout() {
   const [activeCalculator, setActiveCalculator] = useState<CalculatorType>("lumpsum-calculator")
@@ -26,6 +28,8 @@ export function CalculatorLayout() {
         return <PerpetuityCalculator />
       case "tax-calculator":
         return <TaxCalculator />
+      case "bond-calculator":
+          return <CouponBondCalculator />
     }
   }
 

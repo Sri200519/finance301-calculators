@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Calculator, Percent, DollarSign, TrendingUp, BarChart3, Menu, X } from "lucide-react";
+import { Calculator, Percent, DollarSign, TrendingUp, Scale, Landmark, Coins, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { CalculatorType } from "@/components/calculator-layout";
 import { ModeToggle } from "@/components/mode-toggle";
@@ -22,22 +22,27 @@ export function Sidebar({ activeCalculator, setActiveCalculator }: SidebarProps)
     {
       id: "lumpsum-calculator",
       name: "Value of Lump Sums",
-      icon: <Percent className="h-5 w-5" />, 
+      icon: <Coins className="h-5 w-5" />, // Represents a lump sum of money
     },
     {
       id: "annuity-calculator",
       name: "Annuity Calculator",
-      icon: <DollarSign className="h-5 w-5" />, 
+      icon: <Landmark className="h-5 w-5" />, // Represents regular payments (like a bank)
     },
     {
       id: "perpetuity-calculator",
       name: "Perpetuity Calculator",
-      icon: <TrendingUp className="h-5 w-5" />, 
+      icon: <TrendingUp className="h-5 w-5" />, // Represents infinite growth
     },
     {
       id: "tax-calculator",
       name: "Tax Calculator",
-      icon: <BarChart3 className="h-5 w-5" />, 
+      icon: <Scale className="h-5 w-5" />, // Represents balance and fairness (taxes)
+    },
+    {
+      id: "bond-calculator",
+      name: "Bond Calculator",
+      icon: <Percent className="h-5 w-5" />, // Represents interest rates
     },
   ];
 
