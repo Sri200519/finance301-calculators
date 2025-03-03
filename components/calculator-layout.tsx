@@ -7,6 +7,7 @@ import { AnnuityCalculator } from "@/components/calculators/annuity-calculator"
 import { PerpetuityCalculator } from "./calculators/perpetuity-calculator"
 import { TaxCalculator } from "./calculators/tax-calculator"
 import { CouponBondCalculator } from "./calculators/bond-calculator"
+import { DividendCapitalGainCalculator } from "./calculators/dividend-calculator"
 
 export type CalculatorType =
   | "lumpsum-calculator"
@@ -14,6 +15,7 @@ export type CalculatorType =
   | "perpetuity-calculator"
   | "tax-calculator"
   | "bond-calculator"
+  | "dividend-calculator"
 
 export function CalculatorLayout() {
   const [activeCalculator, setActiveCalculator] = useState<CalculatorType>("lumpsum-calculator")
@@ -30,6 +32,8 @@ export function CalculatorLayout() {
         return <TaxCalculator />
       case "bond-calculator":
           return <CouponBondCalculator />
+      case "dividend-calculator":
+          return <DividendCapitalGainCalculator />
     }
   }
 

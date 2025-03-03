@@ -44,6 +44,11 @@ export function Sidebar({ activeCalculator, setActiveCalculator }: SidebarProps)
       name: "Bond Calculator",
       icon: <Percent className="h-5 w-5" />, // Represents interest rates
     },
+    {
+      id: "dividend-calculator",
+      name: "Stock Price Calculator",
+      icon: <DollarSign className="h-5 w-5" />, // Represents interest rates
+    },
   ];
 
   return (
