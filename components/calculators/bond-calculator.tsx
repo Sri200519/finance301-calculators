@@ -6,14 +6,20 @@ import { InputGroup } from "@/components/ui/input-group";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertCircle, RefreshCw } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 export function CouponBondCalculator() {
   // State for inputs
   const [annualCouponPercentage, setAnnualCouponPercentage] = useState<string>("");
+  const [couponPayment, setCouponPayment] = useState<string>("");
   const [ytm, setYtm] = useState<string>("");
   const [bondPrice, setBondPrice] = useState<string>("");
   const [faceValue, setFaceValue] = useState<string>("");
   const [numPeriods, setNumPeriods] = useState<string>("");
+
+  // State for coupon input type
+  const [useCouponPayment, setUseCouponPayment] = useState<boolean>(false);
 
   // State for compound frequency
   const [compoundFrequency, setCompoundFrequency] = useState<"yearly" | "semiannually" | "quarterly" | "monthly" | "custom">("yearly");
@@ -27,7 +33,7 @@ export function CouponBondCalculator() {
 
   // State for selected calculation type
   const [calculationType, setCalculationType] = useState<
-    "bondPrice" | "ytm" | "faceValue" | "annualCouponPercentage" | "zeroCouponPrice" | "zeroCouponYTM"
+    "bondPrice" | "ytm" | "faceValue" | "annualCouponPercentage" | "couponPayment" | "zeroCouponPrice" | "zeroCouponYTM"
   >("bondPrice");
 
   // Load data from localStorage on component mount
@@ -37,6 +43,7 @@ export function CouponBondCalculator() {
       if (savedData) {
         const parsedData = JSON.parse(savedData);
         setAnnualCouponPercentage(parsedData.annualCouponPercentage || "");
+        setCouponPayment(parsedData.couponPayment || "");
         setYtm(parsedData.ytm || "");
         setBondPrice(parsedData.bondPrice || "");
         setFaceValue(parsedData.faceValue || "");
@@ -44,6 +51,7 @@ export function CouponBondCalculator() {
         setCompoundFrequency(parsedData.compoundFrequency || "yearly");
         setCustomFrequency(parsedData.customFrequency || "");
         setCalculationType(parsedData.calculationType || "bondPrice");
+        setUseCouponPayment(parsedData.useCouponPayment || false);
       }
     }
   }, []);
@@ -53,32 +61,62 @@ export function CouponBondCalculator() {
     if (typeof window !== 'undefined') {
       const dataToSave = {
         annualCouponPercentage,
+        couponPayment,
         ytm,
         bondPrice,
         faceValue,
         numPeriods,
         compoundFrequency,
         customFrequency,
-        calculationType
+        calculationType,
+        useCouponPayment
       };
       localStorage.setItem('bondCalculatorData', JSON.stringify(dataToSave));
     }
-  }, [annualCouponPercentage, ytm, bondPrice, faceValue, numPeriods, compoundFrequency, customFrequency, calculationType]);
+  }, [
+    annualCouponPercentage, 
+    couponPayment,
+    ytm, 
+    bondPrice, 
+    faceValue, 
+    numPeriods, 
+    compoundFrequency, 
+    customFrequency, 
+    calculationType,
+    useCouponPayment
+  ]);
 
   // Reset all form fields and clear localStorage
   const handleReset = () => {
     setAnnualCouponPercentage("");
+    setCouponPayment("");
     setYtm("");
     setBondPrice("");
     setFaceValue("");
     setNumPeriods("");
     setCompoundFrequency("yearly");
     setCustomFrequency("");
+    setUseCouponPayment(false);
     setResult(null);
     setError(null);
     
     if (typeof window !== 'undefined') {
       localStorage.removeItem('bondCalculatorData');
+    }
+  };
+
+  // Handle toggle between coupon percentage and coupon payment
+  const handleCouponTypeToggle = (checked: boolean) => {
+    setUseCouponPayment(checked);
+    // Clear both coupon values when switching
+    setAnnualCouponPercentage("");
+    setCouponPayment("");
+    
+    // Update calculation type if necessary
+    if (checked && calculationType === "annualCouponPercentage") {
+      setCalculationType("couponPayment");
+    } else if (!checked && calculationType === "couponPayment") {
+      setCalculationType("annualCouponPercentage");
     }
   };
 
@@ -102,15 +140,21 @@ export function CouponBondCalculator() {
 
   // Check if all required inputs are filled
   const areAllInputsFilled = () => {
+    const isCouponValueFilled = useCouponPayment 
+      ? !!couponPayment 
+      : !!annualCouponPercentage;
+    
     switch (calculationType) {
       case "bondPrice":
-        return ytm && faceValue && numPeriods && annualCouponPercentage;
+        return ytm && faceValue && numPeriods && isCouponValueFilled;
       case "ytm":
-        return bondPrice && faceValue && numPeriods && annualCouponPercentage;
+        return bondPrice && faceValue && numPeriods && isCouponValueFilled;
       case "faceValue":
-        return bondPrice && ytm && numPeriods && annualCouponPercentage;
+        return bondPrice && ytm && numPeriods && isCouponValueFilled;
       case "annualCouponPercentage":
-        return bondPrice && ytm && faceValue && numPeriods;
+        return bondPrice && ytm && faceValue && numPeriods && !useCouponPayment;
+      case "couponPayment":
+        return bondPrice && ytm && faceValue && numPeriods && useCouponPayment;
       case "zeroCouponPrice":
         return ytm && faceValue && numPeriods;
       case "zeroCouponYTM":
@@ -130,7 +174,23 @@ export function CouponBondCalculator() {
 
     try {
       // Convert inputs to numbers
-      const couponRate = Number(annualCouponPercentage) / 100; // Convert percentage to decimal
+      let couponRate = 0;
+      let C = 0;
+      
+      if (useCouponPayment) {
+        C = Number(couponPayment);
+        // Calculate coupon rate if not calculating coupon payment
+        if (calculationType !== "couponPayment" && faceValue) {
+          couponRate = C / Number(faceValue);
+        }
+      } else {
+        couponRate = Number(annualCouponPercentage) / 100; // Convert percentage to decimal
+        // Calculate coupon payment if not calculating coupon percentage
+        if (calculationType !== "annualCouponPercentage" && faceValue) {
+          C = couponRate * Number(faceValue);
+        }
+      }
+      
       const y = Number(ytm) / 100; // Convert YTM from percentage to decimal
       const P = Number(bondPrice);
       const F = Number(faceValue);
@@ -139,13 +199,13 @@ export function CouponBondCalculator() {
 
       // Validate inputs
       if (
-        isNaN(y) ||
-        isNaN(P) ||
-        isNaN(F) ||
+        (calculationType !== "ytm" && isNaN(y)) ||
+        (calculationType !== "bondPrice" && isNaN(P)) ||
+        (calculationType !== "faceValue" && isNaN(F)) ||
         isNaN(n) ||
-        y < 0 ||
-        P < 0 ||
-        F < 0 ||
+        (calculationType !== "ytm" && y < 0) ||
+        (calculationType !== "bondPrice" && P < 0) ||
+        (calculationType !== "faceValue" && F < 0) ||
         n < 0
       ) {
         setError("Please enter valid positive numbers for all fields.");
@@ -153,14 +213,11 @@ export function CouponBondCalculator() {
         return;
       }
 
-      // Calculate coupon payment (only for coupon bonds)
-      const couponPayment = F * couponRate;
-
       // Calculate bond price if missing
       if (calculationType === "bondPrice") {
         let price = 0;
         for (let t = 1; t <= n * m; t++) {
-          price += couponPayment / m / Math.pow(1 + y / m, t);
+          price += C / m / Math.pow(1 + y / m, t);
         }
         price += F / Math.pow(1 + y / m, n * m);
         setResult(price);
@@ -169,7 +226,7 @@ export function CouponBondCalculator() {
 
       // Calculate YTM if missing
       else if (calculationType === "ytm") {
-        // Use a numerical method (e.g., Newton-Raphson) to approximate YTM
+        // Use a numerical method (binary search) to approximate YTM
         let low = 0;
         let high = 1;
         let guess = (low + high) / 2;
@@ -179,7 +236,7 @@ export function CouponBondCalculator() {
         for (let i = 0; i < maxIterations; i++) {
           let price = 0;
           for (let t = 1; t <= n * m; t++) {
-            price += couponPayment / m / Math.pow(1 + guess / m, t);
+            price += C / m / Math.pow(1 + guess / m, t);
           }
           price += F / Math.pow(1 + guess / m, n * m);
 
@@ -203,17 +260,60 @@ export function CouponBondCalculator() {
 
       // Calculate face value if missing
       else if (calculationType === "faceValue") {
-        const numerator = P;
-        const denominator = (1 / Math.pow(1 + y / m, n * m)) + (couponRate / m) * ((1 - 1 / Math.pow(1 + y / m, n * m)) / (y / m));
-        const face = numerator / denominator;
-        setResult(face);
-        setError(null);
+        // For coupon payment input, we need to solve differently
+        if (useCouponPayment) {
+          // Use numerical approach for face value with coupon payment
+          let low = 0;
+          let high = P * 10; // Assuming face value is not more than 10x the price
+          let guess = (low + high) / 2;
+          let maxIterations = 100;
+          let tolerance = 0.01;
+
+          for (let i = 0; i < maxIterations; i++) {
+            let price = 0;
+            for (let t = 1; t <= n * m; t++) {
+              price += C / m / Math.pow(1 + y / m, t);
+            }
+            price += guess / Math.pow(1 + y / m, n * m);
+
+            if (Math.abs(price - P) < tolerance) {
+              setResult(guess);
+              setError(null);
+              return;
+            }
+
+            if (price > P) {
+              high = guess;
+            } else {
+              low = guess;
+            }
+            guess = (low + high) / 2;
+          }
+          
+          setError("Failed to calculate face value. Please check your inputs.");
+          setResult(null);
+        } else {
+          // For coupon percentage, we can use the formula
+          const numerator = P;
+          const denominator = (1 / Math.pow(1 + y / m, n * m)) + (couponRate / m) * ((1 - 1 / Math.pow(1 + y / m, n * m)) / (y / m));
+          const face = numerator / denominator;
+          setResult(face);
+          setError(null);
+        }
       }
 
       // Calculate annual coupon percentage if missing
       else if (calculationType === "annualCouponPercentage") {
-        const couponRate = ((P - F / Math.pow(1 + y / m, n * m)) * y) / (F * (1 - 1 / Math.pow(1 + y / m, n * m)));
+        const couponRate = ((P - F / Math.pow(1 + y / m, n * m)) * (y / m)) / (F * (1 - 1 / Math.pow(1 + y / m, n * m)));
         setResult(couponRate * 100); // Convert to percentage
+        setError(null);
+      }
+      
+      // Calculate coupon payment if missing
+      else if (calculationType === "couponPayment") {
+        const presentValueFactor = (1 - 1 / Math.pow(1 + y / m, n * m)) / (y / m);
+        const C = (P - F / Math.pow(1 + y / m, n * m)) / presentValueFactor;
+        setResult(C);
         setError(null);
       }
 
@@ -236,7 +336,18 @@ export function CouponBondCalculator() {
       setError("An error occurred during calculation. Please check your inputs.");
       setResult(null);
     }
-  }, [annualCouponPercentage, ytm, bondPrice, faceValue, numPeriods, compoundFrequency, customFrequency, calculationType]);
+  }, [
+    annualCouponPercentage, 
+    couponPayment,
+    ytm, 
+    bondPrice, 
+    faceValue, 
+    numPeriods, 
+    compoundFrequency, 
+    customFrequency, 
+    calculationType,
+    useCouponPayment
+  ]);
 
   return (
     <div className="space-y-8">
@@ -244,7 +355,7 @@ export function CouponBondCalculator() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Bond Calculator</h1>
           <p className="mt-2 text-gray-500 dark:text-gray-400">
-            Calculate YTM, bond price, face value, or annual coupon percentage for coupon and zero-coupon bonds.
+            Calculate YTM, bond price, face value, or coupon values for coupon and zero-coupon bonds.
           </p>
         </div>
         <Button 
@@ -286,21 +397,28 @@ export function CouponBondCalculator() {
                     variant={calculationType === "ytm" ? "default" : "outline"}
                     className="w-full"
                   >
-                    YTM
+                    Yield to Maturity (YTM)
                   </Button>
                   <Button
                     onClick={() => setCalculationType("faceValue")}
                     variant={calculationType === "faceValue" ? "default" : "outline"}
                     className="w-full"
                   >
-                    Face Value
+                    Par Value (Face Value)
                   </Button>
                   <Button
-                    onClick={() => setCalculationType("annualCouponPercentage")}
-                    variant={calculationType === "annualCouponPercentage" ? "default" : "outline"}
+                    onClick={() => {
+                      setCalculationType(useCouponPayment ? "couponPayment" : "annualCouponPercentage");
+                    }}
+                    variant={
+                      (useCouponPayment && calculationType === "couponPayment") || 
+                      (!useCouponPayment && calculationType === "annualCouponPercentage") 
+                        ? "default" 
+                        : "outline"
+                    }
                     className="w-full"
                   >
-                    Annual Coupon %
+                    {useCouponPayment ? "Coupon Payment" : "Annual Coupon % (r)"}
                   </Button>
                   <Button
                     onClick={() => setCalculationType("zeroCouponPrice")}
@@ -317,6 +435,20 @@ export function CouponBondCalculator() {
                     Zero Coupon YTM
                   </Button>
                 </div>
+
+                {/* Coupon Input Type Toggle */}
+                {calculationType !== "zeroCouponPrice" && calculationType !== "zeroCouponYTM" && (
+                  <div className="flex items-center space-x-2 pt-2 pb-1">
+                    <Label htmlFor="coupon-type-toggle">
+                      {useCouponPayment ? "Use Coupon Payment" : "Use Annual Coupon %"}
+                    </Label>
+                    <Switch
+                      id="coupon-type-toggle"
+                      checked={useCouponPayment}
+                      onCheckedChange={handleCouponTypeToggle}
+                    />
+                  </div>
+                )}
 
                 {calculationType !== "bondPrice" && calculationType !== "zeroCouponPrice" && (
                   <InputGroup
@@ -343,7 +475,7 @@ export function CouponBondCalculator() {
                 {calculationType !== "faceValue" && (
                   <InputGroup
                     id="faceValue"
-                    label="Face Value (F)"
+                    label="Par Value (F)"
                     value={faceValue}
                     onChange={setFaceValue}
                     type="text"
@@ -351,14 +483,27 @@ export function CouponBondCalculator() {
                   />
                 )}
 
-                {calculationType !== "annualCouponPercentage" && calculationType !== "zeroCouponPrice" && calculationType !== "zeroCouponYTM" && (
+                {!useCouponPayment && calculationType !== "annualCouponPercentage" && 
+                 calculationType !== "zeroCouponPrice" && calculationType !== "zeroCouponYTM" && (
                   <InputGroup
                     id="annualCouponPercentage"
-                    label="Annual Coupon Percentage"
+                    label="Annual Coupon Percentage (r)"
                     value={annualCouponPercentage}
                     onChange={setAnnualCouponPercentage}
                     type="text"
                     suffix="%"
+                  />
+                )}
+
+                {useCouponPayment && calculationType !== "couponPayment" && 
+                 calculationType !== "zeroCouponPrice" && calculationType !== "zeroCouponYTM" && (
+                  <InputGroup
+                    id="couponPayment"
+                    label="Annual Coupon Payment (PMT)"
+                    value={couponPayment}
+                    onChange={setCouponPayment}
+                    type="text"
+                    prefix="$"
                   />
                 )}
 
@@ -469,6 +614,8 @@ export function CouponBondCalculator() {
                         <li><strong>Yield to Maturity (YTM)</strong>: The total return if held to maturity.</li>
                         <li><strong>Face Value</strong>: The amount repaid to the bondholder at maturity.</li>
                         <li><strong>Bond Price</strong>: The present value of all future cash flows.</li>
+                        <li><strong>Coupon Payment</strong>: The actual dollar amount paid out as interest.</li>
+                        <li><strong>Coupon Rate</strong>: The annual interest rate expressed as a percentage of face value.</li>
                     </ul>
                     </div>
                 </div>
@@ -481,8 +628,9 @@ export function CouponBondCalculator() {
                     <h4 className="font-semibold">Coupon Bond</h4>
                     <ul className="ml-6 list-disc space-y-1 text-sm">
                     <li><strong>Annual Coupon Percentage</strong>: 5%</li>
-                    <li><strong>Yield to Maturity</strong>: 5%</li>
                     <li><strong>Face Value</strong>: $1,000</li>
+                    <li><strong>Annual Coupon Payment</strong>: $50 (5% of $1,000)</li>
+                    <li><strong>Yield to Maturity</strong>: 5%</li>
                     <li><strong>Number of Periods</strong>: 10 years</li>
                     </ul>
                     <p className="mt-4 text-sm">
@@ -512,7 +660,6 @@ export function CouponBondCalculator() {
                 </CardContent>
             </Card>
             </TabsContent>
-
       </Tabs>
     </div>
   );

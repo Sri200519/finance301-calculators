@@ -431,7 +431,7 @@ export function DividendCapitalGainCalculator() {
                   <>
                     <InputGroup
                       id="numberOfPeriods"
-                      label="Number of Years"
+                      label="Number of Years (n)"
                       value={numberOfPeriods}
                       onChange={setNumberOfPeriods}
                       type="number"
