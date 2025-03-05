@@ -509,7 +509,7 @@ export function CouponBondCalculator() {
 
                 <InputGroup
                   id="numPeriods"
-                  label="Number of Periods (n)"
+                  label="Number of Years (n)"
                   value={numPeriods}
                   onChange={setNumPeriods}
                   type="text"
