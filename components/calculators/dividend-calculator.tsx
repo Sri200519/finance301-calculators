@@ -416,14 +416,14 @@ export function DividendCapitalGainCalculator() {
                     variant={calculationType === "ggm" ? "default" : "outline"}
                     className="w-full"
                   >
-                    Growth Perpetuity
+                    Growth Perpetuity (GGM)
                   </Button>
                   <Button
                     onClick={() => handleCalculationTypeChange("stockPricePerpetuity")}
                     variant={calculationType === "stockPricePerpetuity" ? "default" : "outline"}
                     className="w-full"
                   >
-                    Price Perpetuity
+                    Price Perpetuity (DDM)
                   </Button>
                 </div>
                 
