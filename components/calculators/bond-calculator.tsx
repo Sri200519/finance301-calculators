@@ -464,7 +464,7 @@ export function CouponBondCalculator() {
                 {calculationType !== "ytm" && calculationType !== "zeroCouponYTM" && (
                   <InputGroup
                     id="ytm"
-                    label="Yield to Maturity (YTM)"
+                    label="Yield to Maturity (r)"
                     value={ytm}
                     onChange={setYtm}
                     type="text"
@@ -475,7 +475,7 @@ export function CouponBondCalculator() {
                 {calculationType !== "faceValue" && (
                   <InputGroup
                     id="faceValue"
-                    label="Par Value (F)"
+                    label="Par Value (Fv)"
                     value={faceValue}
                     onChange={setFaceValue}
                     type="text"
@@ -487,7 +487,7 @@ export function CouponBondCalculator() {
                  calculationType !== "zeroCouponPrice" && calculationType !== "zeroCouponYTM" && (
                   <InputGroup
                     id="annualCouponPercentage"
-                    label="Annual Coupon Percentage (r)"
+                    label="Annual Coupon Percentage (c)"
                     value={annualCouponPercentage}
                     onChange={setAnnualCouponPercentage}
                     type="text"
