@@ -434,7 +434,7 @@ export function DividendCapitalGainCalculator() {
                       label="Number of Years (n)"
                       value={numberOfPeriods}
                       onChange={setNumberOfPeriods}
-                      type="number"
+                      type="text"
                     />
                     <div className="flex items-center space-x-2">
                       <Switch
@@ -452,7 +452,7 @@ export function DividendCapitalGainCalculator() {
                         label="Dividend (D₀)"
                         value={currentDividend}
                         onChange={setCurrentDividend}
-                        type="number"
+                        type="text"
                         prefix="$"
                       />
                     ) : (
@@ -463,7 +463,7 @@ export function DividendCapitalGainCalculator() {
                           label={`Dividend Year ${index + 1} (D${index + 1})`}
                           value={dividends[index] || ""}
                           onChange={(value) => handleDividendChange(index, value)}
-                          type="number"
+                          type="text"
                           prefix="$"
                         />
                       ))
@@ -473,7 +473,7 @@ export function DividendCapitalGainCalculator() {
                       label="Future Price (Pn)"
                       value={futurePrice}
                       onChange={setFuturePrice}
-                      type="number"
+                      type="text"
                       prefix="$"
                     />
                     <InputGroup
@@ -481,7 +481,7 @@ export function DividendCapitalGainCalculator() {
                       label="Required Rate of Return (r)"
                       value={requiredRateOfReturn}
                       onChange={setRequiredRateOfReturn}
-                      type="number"
+                      type="text"
                       suffix="%"
                     />
                   </>
@@ -493,7 +493,7 @@ export function DividendCapitalGainCalculator() {
                       label="Current Dividend (D₀)"
                       value={currentDividend}
                       onChange={setCurrentDividend}
-                      type="number"
+                      type="text"
                       prefix="$"
                     />
                     <InputGroup
@@ -501,7 +501,7 @@ export function DividendCapitalGainCalculator() {
                       label="Current Price (P₀)"
                       value={currentPrice}
                       onChange={setCurrentPrice}
-                      type="number"
+                      type="text"
                       prefix="$"
                     />
                   </>
@@ -513,7 +513,7 @@ export function DividendCapitalGainCalculator() {
                       label="Current Price (P₀)"
                       value={currentPrice}
                       onChange={setCurrentPrice}
-                      type="number"
+                      type="text"
                       prefix="$"
                     />
                     <InputGroup
@@ -521,7 +521,7 @@ export function DividendCapitalGainCalculator() {
                       label="Future Price (P₁)"
                       value={futurePrice}
                       onChange={setFuturePrice}
-                      type="number"
+                      type="text"
                       prefix="$"
                     />
                   </>
@@ -533,7 +533,7 @@ export function DividendCapitalGainCalculator() {
                       label="Current Dividend (D₀)"
                       value={currentDividend}
                       onChange={setCurrentDividend}
-                      type="number"
+                      type="text"
                       prefix="$"
                     />
                     <InputGroup
@@ -541,7 +541,7 @@ export function DividendCapitalGainCalculator() {
                       label="Required Rate of Return (r)"
                       value={requiredRateOfReturn}
                       onChange={setRequiredRateOfReturn}
-                      type="number"
+                      type="text"
                       suffix="%"
                     />
                     <InputGroup
@@ -549,7 +549,7 @@ export function DividendCapitalGainCalculator() {
                       label="Growth Rate (g)"
                       value={growthRate}
                       onChange={setGrowthRate}
-                      type="number"
+                      type="text"
                       suffix="%"
                     />
                   </>
@@ -561,7 +561,7 @@ export function DividendCapitalGainCalculator() {
                       label="Current Dividend (D₀)"
                       value={currentDividend}
                       onChange={setCurrentDividend}
-                      type="number"
+                      type="text"
                       prefix="$"
                     />
                     <InputGroup
@@ -569,7 +569,7 @@ export function DividendCapitalGainCalculator() {
                       label="Growth Rate (g)"
                       value={growthRate}
                       onChange={setGrowthRate}
-                      type="number"
+                      type="text"
                       suffix="%"
                     />
                     <InputGroup
@@ -577,7 +577,7 @@ export function DividendCapitalGainCalculator() {
                       label="Years (n)"
                       value={years}
                       onChange={setYears}
-                      type="number"
+                      type="text"
                     />
                   </>
                 )}
@@ -588,7 +588,7 @@ export function DividendCapitalGainCalculator() {
                       label="Current Dividend (D₀)"
                       value={currentDividend}
                       onChange={setCurrentDividend}
-                      type="number"
+                      type="text"
                       prefix="$"
                     />
                     <InputGroup
@@ -596,7 +596,7 @@ export function DividendCapitalGainCalculator() {
                       label="Required Rate of Return (r)"
                       value={requiredRateOfReturn}
                       onChange={setRequiredRateOfReturn}
-                      type="number"
+                      type="text"
                       suffix="%"
                     />
                   </>
