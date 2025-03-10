@@ -8,17 +8,30 @@ This project is actively hosted at: [Finance 301 Calculators](https://finance301
 
 ## Features
 
-- **Lump Sum Calculator**: Computes the future or present value of a single cash flow.
-- **Annuity Calculator**: Determines the present or future value of a series of cash flows.
-- **Perpetuity Calculator**: Calculates the present value of a perpetuity.
-- **Tax Calculator**: Helps estimate taxes based on progressive tax brackets.
-- **Dark Mode Support**: Users can toggle between light and dark themes for a better viewing experience.
+- **AI Chat Assistant**: Interactive chat interface that helps explain financial concepts and guides users to the right calculators
+  - Powered by OpenAI's GPT-4
+  - Integration with Notion for knowledge base
+  - LaTeX formula rendering
+  - Smart calculator recommendations
+- **Lump Sum Calculator**: Computes the future or present value of a single cash flow
+- **Annuity Calculator**: Determines the present or future value of a series of cash flows
+- **Perpetuity Calculator**: Calculates the present value of a perpetuity
+- **Tax Calculator**: Helps estimate taxes based on progressive tax brackets
+- **Bond Calculator**: Calculate bond prices and yields
+- **Dividend Calculator**: Compute dividend growth and capital gains
+- **Dark Mode Support**: Users can toggle between light and dark themes for a better viewing experience
+- **Responsive Design**: Fully functional on both desktop and mobile devices
 
 ## Tech Stack
 
-- **Framework**: Next.js (React)
+- **Framework**: Next.js 14 (React)
 - **Styling**: Tailwind CSS
 - **Icons**: Lucide React
+- **APIs**:
+  - OpenAI API for chat functionality
+  - Notion API for content management
+- **Math Rendering**: KaTeX
+- **Markdown**: React-Markdown with math extensions
 - **Deployment**: Vercel
 
 ## Installation & Development
@@ -37,19 +50,42 @@ To run the project locally, follow these steps:
    ```sh
    npm install
    ```
-4. Run the development server:
+4. Set up environment variables:
+   ```sh
+   # Create a .env.local file with:
+   OPENAI_API_KEY=your_openai_api_key
+   NOTION_API_KEY=your_notion_api_key
+   ```
+5. Run the development server:
    ```sh
    npm run dev
    ```
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+6. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## API Integration
+
+### OpenAI Integration
+- Uses GPT-4 for natural language understanding
+- Provides step-by-step explanations of financial concepts
+- Formats responses with LaTeX for mathematical formulas
+- Recommends appropriate calculators based on user queries
+
+### Notion Integration
+- Serves as a knowledge base for financial concepts
+- Dynamically fetches content from Notion pages
+- Supports rich text formatting and mathematical formulas
+- Organizes content in a hierarchical structure
 
 ## Deployment
 
 The project is deployed on [Vercel](https://vercel.com/). To deploy your own version:
 
-1. Push changes to GitHub.
-2. Link the repository to a new project on Vercel.
-3. Vercel will automatically deploy updates on every push to the `main` branch.
+1. Push changes to GitHub
+2. Link the repository to a new project on Vercel
+3. Add the required environment variables in Vercel:
+   - `OPENAI_API_KEY`
+   - `NOTION_API_KEY`
+4. Vercel will automatically deploy updates on every push to the `main` branch
 
 ## Contributions
 
