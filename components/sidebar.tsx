@@ -20,32 +20,32 @@ export function Sidebar({ activeCalculator, setActiveCalculator }: SidebarProps)
 
   const calculators: CalculatorItem[] = [
     {
-      id: "lumpsum-calculator",
+      id: "lumpsum",
       name: "Value of Lump Sums",
       icon: <Coins className="h-5 w-5" />, // Represents a lump sum of money
     },
     {
-      id: "annuity-calculator",
+      id: "annuity",
       name: "Annuity Calculator",
       icon: <Landmark className="h-5 w-5" />, // Represents regular payments (like a bank)
     },
     {
-      id: "perpetuity-calculator",
+      id: "perpetuity",
       name: "Perpetuity Calculator",
       icon: <TrendingUp className="h-5 w-5" />, // Represents infinite growth
     },
     {
-      id: "tax-calculator",
+      id: "tax",
       name: "Tax Calculator",
       icon: <Scale className="h-5 w-5" />, // Represents balance and fairness (taxes)
     },
     {
-      id: "bond-calculator",
+      id: "bond",
       name: "Bond Calculator",
       icon: <Percent className="h-5 w-5" />, // Represents interest rates
     },
     {
-      id: "dividend-calculator",
+      id: "dividend",
       name: "Stock Price Calculator",
       icon: <DollarSign className="h-5 w-5" />, // Represents interest rates
     },
