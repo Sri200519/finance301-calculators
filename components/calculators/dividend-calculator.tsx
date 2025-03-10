@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 
+
 export function DividendCapitalGainCalculator() {
   // State for inputs
   const [currentDividend, setCurrentDividend] = useState<string>("");
@@ -20,6 +21,7 @@ export function DividendCapitalGainCalculator() {
   const [numberOfPeriods, setNumberOfPeriods] = useState<string>("");
   const [dividends, setDividends] = useState<string[]>([]);
   const [useSingleDividend, setUseSingleDividend] = useState<boolean>(true);
+  const [useD1, setUseD1] = useState<boolean>(false);
 
   // State for result
   const [result, setResult] = useState<number | null>(null);
@@ -42,152 +44,82 @@ export function DividendCapitalGainCalculator() {
   const [activeTab, setActiveTab] = useState<string>("calculator");
 
   // Load data from localStorage only once on initial render
-  useEffect(() => {
-    if (typeof window !== 'undefined' && !initialized) {
-      const savedState = localStorage.getItem('dividendCalculatorState');
-      
-      if (savedState) {
-        try {
-          const parsedState = JSON.parse(savedState);
-          
-          // Set all state values from localStorage
-          setCalculationType(parsedState.calculationType || "ddm");
-          setCurrentDividend(parsedState.currentDividend || "");
-          setExpectedDividend(parsedState.expectedDividend || "");
-          setRequiredRateOfReturn(parsedState.requiredRateOfReturn || "");
-          setGrowthRate(parsedState.growthRate || "");
-          setCurrentPrice(parsedState.currentPrice || "");
-          setFuturePrice(parsedState.futurePrice || "");
-          setYears(parsedState.years || "");
-          setNumberOfPeriods(parsedState.numberOfPeriods || "");
-          
-          // Handling arrays correctly
-          if (Array.isArray(parsedState.dividends)) {
-            setDividends(parsedState.dividends);
-          }
-          
-          setUseSingleDividend(parsedState.useSingleDividend !== undefined ? parsedState.useSingleDividend : true);
-          
-          // Optional: load result state too
-          if (parsedState.result !== undefined) {
-            setResult(parsedState.result);
-          }
-          
-          // Load active tab if saved
-          if (parsedState.activeTab) {
-            setActiveTab(parsedState.activeTab);
-          }
-        } catch (e) {
-          console.error("Error loading state from localStorage:", e);
-        }
-      }
-      
-      setInitialized(true);
-    }
-  }, [initialized]);
-
   // Save state to localStorage whenever relevant state changes
-  useEffect(() => {
-    if (typeof window !== 'undefined' && initialized) {
-      const stateToSave = {
-        calculationType,
-        currentDividend,
-        expectedDividend,
-        requiredRateOfReturn,
-        growthRate,
-        currentPrice,
-        futurePrice,
-        years,
-        numberOfPeriods,
-        dividends,
-        useSingleDividend,
-        result,
-        activeTab
-      };
-      
+useEffect(() => {
+  if (typeof window !== 'undefined' && initialized) {
+    const stateToSave = {
+      calculationType,
+      currentDividend,
+      expectedDividend,
+      requiredRateOfReturn,
+      growthRate,
+      currentPrice,
+      futurePrice,
+      years,
+      numberOfPeriods,
+      dividends,
+      useSingleDividend,
+      useD1,
+      result,
+      activeTab
+    };
+    
+    try {
+      localStorage.setItem('dividendCalculatorState', JSON.stringify(stateToSave));
+    } catch (e) {
+      console.error("Error saving state to localStorage:", e);
+    }
+  }
+}, [
+  initialized,
+  calculationType,
+  currentDividend,
+  expectedDividend,
+  requiredRateOfReturn,
+  growthRate,
+  currentPrice,
+  futurePrice,
+  years,
+  numberOfPeriods,
+  dividends,
+  useSingleDividend,
+  useD1,
+  result,
+  activeTab
+]);
+
+// Load data from localStorage only once on initial render
+useEffect(() => {
+  if (typeof window !== 'undefined' && !initialized) {
+    const savedState = localStorage.getItem('dividendCalculatorState');
+    
+    if (savedState) {
       try {
-        localStorage.setItem('dividendCalculatorState', JSON.stringify(stateToSave));
+        const parsedState = JSON.parse(savedState);
+        
+        // Set all state values from localStorage
+        setCalculationType(parsedState.calculationType || "ddm");
+        setCurrentDividend(parsedState.currentDividend || "");
+        setExpectedDividend(parsedState.expectedDividend || "");
+        setRequiredRateOfReturn(parsedState.requiredRateOfReturn || "");
+        setGrowthRate(parsedState.growthRate || "");
+        setCurrentPrice(parsedState.currentPrice || "");
+        setFuturePrice(parsedState.futurePrice || "");
+        setYears(parsedState.years || "");
+        setNumberOfPeriods(parsedState.numberOfPeriods || "");
+        setDividends(parsedState.dividends || []);
+        setUseSingleDividend(parsedState.useSingleDividend !== undefined ? parsedState.useSingleDividend : true);
+        setUseD1(parsedState.useD1 !== undefined ? parsedState.useD1 : false);
+        setResult(parsedState.result || null);
+        setActiveTab(parsedState.activeTab || "calculator");
       } catch (e) {
-        console.error("Error saving state to localStorage:", e);
+        console.error("Error loading state from localStorage:", e);
       }
     }
-  }, [
-    initialized,
-    calculationType,
-    currentDividend,
-    expectedDividend,
-    requiredRateOfReturn,
-    growthRate,
-    currentPrice,
-    futurePrice,
-    years,
-    numberOfPeriods,
-    dividends,
-    useSingleDividend,
-    result,
-    activeTab
-  ]);
-
-  // Check if all required fields are filled based on calculation type
-  useEffect(() => {
-    if (!initialized) return;
     
-    let fieldsValid = false;
-
-    switch (calculationType) {
-      case "ddm":
-        if (useSingleDividend) {
-          fieldsValid = 
-            !!currentDividend && 
-            !!requiredRateOfReturn && 
-            !!numberOfPeriods && 
-            !!futurePrice;
-        } else {
-          fieldsValid = 
-            !!numberOfPeriods && 
-            dividends.length === Number(numberOfPeriods) && 
-            dividends.every(d => !!d) && 
-            !!requiredRateOfReturn && 
-            !!futurePrice;
-        }
-        break;
-      case "dividendYield":
-        fieldsValid = !!currentDividend && !!currentPrice;
-        break;
-      case "capitalGainYield":
-        fieldsValid = !!currentPrice && !!futurePrice;
-        break;
-      case "ggm":
-        fieldsValid = !!currentDividend && !!requiredRateOfReturn && !!growthRate;
-        break;
-      case "dividendAtYearN":
-        fieldsValid = !!currentDividend && !!growthRate && !!years;
-        break;
-      case "stockPricePerpetuity":
-        fieldsValid = !!currentDividend && !!requiredRateOfReturn;
-        break;
-    }
-
-    setAllFieldsFilled(fieldsValid);
-
-    // Auto-calculate when all fields are filled
-    if (fieldsValid) {
-      calculate();
-    }
-  }, [
-    initialized,
-    calculationType,
-    currentDividend,
-    currentPrice,
-    dividends,
-    expectedDividend,
-    futurePrice,
-    growthRate,
-    numberOfPeriods,
-    requiredRateOfReturn,
-    useSingleDividend,
-    years
-  ]);
+    setInitialized(true);
+  }
+}, [initialized]);
 
   // Effect to handle changes to numberOfPeriods
   useEffect(() => {
@@ -211,6 +143,79 @@ export function DividendCapitalGainCalculator() {
     }
   }, [initialized, numberOfPeriods, calculationType, useSingleDividend, dividends]);
 
+  // Effect to check if all required fields are filled and calculate
+  useEffect(() => {
+    if (!initialized) return;
+
+    const checkRequiredFields = () => {
+      switch (calculationType) {
+        case "ddm":
+          if (useSingleDividend) {
+            return (
+              (useD1 ? expectedDividend : currentDividend) !== "" &&
+              requiredRateOfReturn !== "" &&
+              numberOfPeriods !== "" &&
+              futurePrice !== ""
+            );
+          } else {
+            return (
+              dividends.length === Number(numberOfPeriods) &&
+              dividends.every(d => d !== "") &&
+              requiredRateOfReturn !== "" &&
+              numberOfPeriods !== "" &&
+              futurePrice !== ""
+            );
+          }
+
+        case "dividendYield":
+          return currentDividend !== "" && currentPrice !== "";
+
+        case "capitalGainYield":
+          return currentPrice !== "" && futurePrice !== "";
+
+        case "ggm":
+          return (
+            (useD1 ? expectedDividend : currentDividend) !== "" &&
+            requiredRateOfReturn !== "" &&
+            growthRate !== ""
+          );
+
+        case "dividendAtYearN":
+          return currentDividend !== "" && growthRate !== "" && years !== "";
+
+        case "stockPricePerpetuity":
+          return (
+            (useD1 ? expectedDividend : currentDividend) !== "" &&
+            requiredRateOfReturn !== ""
+          );
+
+        default:
+          return false;
+      }
+    };
+
+    const fieldsFilled = checkRequiredFields();
+    setAllFieldsFilled(fieldsFilled);
+
+    if (fieldsFilled) {
+      calculate();
+    }
+  }, [
+    initialized,
+    calculationType,
+    currentDividend,
+    expectedDividend,
+    requiredRateOfReturn,
+    growthRate,
+    currentPrice,
+    futurePrice,
+    years,
+    numberOfPeriods,
+    dividends,
+    useSingleDividend,
+    useD1
+  ]);
+
   // Calculate the missing value
   const calculate = () => {
     try {
@@ -224,18 +229,25 @@ export function DividendCapitalGainCalculator() {
       const n = Number(years);
       const numPeriods = Number(numberOfPeriods);
 
-      // Validate inputs
+      // Validate inputs based on which dividend is being used
       if (
         (calculationType === "ddm" && (
           isNaN(r) || r < 0 || isNaN(numPeriods) || numPeriods <= 0 || 
-          (useSingleDividend && (isNaN(D0) || D0 < 0)) ||
+          (useSingleDividend && ((useD1 && (isNaN(D1) || D1 < 0)) || (!useD1 && (isNaN(D0) || D0 < 0)))) ||
           isNaN(P1) || P1 < 0
         )) ||
         (calculationType === "dividendYield" && (isNaN(D0) || D0 < 0 || isNaN(P0) || P0 <= 0)) ||
         (calculationType === "capitalGainYield" && (isNaN(P0) || P0 < 0 || isNaN(P1) || P1 < 0)) ||
-        (calculationType === "ggm" && (isNaN(D0) || D0 < 0 || isNaN(r) || r <= 0 || isNaN(g) || g < 0)) ||
+        (calculationType === "ggm" && (
+          (useD1 ? (isNaN(D1) || D1 < 0) : (isNaN(D0) || D0 < 0)) || 
+          isNaN(r) || r <= 0 || 
+          isNaN(g) || g < 0
+        )) ||
         (calculationType === "dividendAtYearN" && (isNaN(D0) || D0 < 0 || isNaN(g) || g < 0 || isNaN(n) || n < 0)) ||
-        (calculationType === "stockPricePerpetuity" && (isNaN(D0) || D0 < 0 || isNaN(r) || r <= 0))
+        (calculationType === "stockPricePerpetuity" && (
+          (useD1 ? (isNaN(D1) || D1 < 0) : (isNaN(D0) || D0 < 0)) || 
+          isNaN(r) || r <= 0
+        ))
       ) {
         setError("Please enter valid positive numbers for all fields.");
         setResult(null);
@@ -247,8 +259,9 @@ export function DividendCapitalGainCalculator() {
         case "ddm":
           if (useSingleDividend) {
             let PV = 0;
+            const dividend = useD1 ? D1 : (D0 * (1 + r)); // If using D0, calculate D1 first
             for (let i = 0; i < numPeriods; i++) {
-              PV += D0 / Math.pow(1 + r, i + 1);
+              PV += dividend / Math.pow(1 + r, i + 1);
             }
             PV += P1 / Math.pow(1 + r, numPeriods);
             setResult(PV);
@@ -283,7 +296,8 @@ export function DividendCapitalGainCalculator() {
             setResult(null);
             return;
           }
-          setResult((D0 * (1 + g)) / (r - g));
+          const dividendGGM = useD1 ? D1 : (D0 * (1 + g)); // If using D0, calculate D1 first
+          setResult(dividendGGM / (r - g));
           break;
 
         case "dividendAtYearN":
@@ -291,7 +305,8 @@ export function DividendCapitalGainCalculator() {
           break;
 
         case "stockPricePerpetuity":
-          setResult(D0 / r);
+          const dividendPerpetuity = useD1 ? D1 : (D0 * (1 + r)); // If using D0, calculate D1 first
+          setResult(dividendPerpetuity / r);
           break;
 
         default:
@@ -334,6 +349,7 @@ export function DividendCapitalGainCalculator() {
     setNumberOfPeriods("");
     setDividends([]);
     setUseSingleDividend(true);
+    setUseD1(false);
     setResult(null);
     setError(null);
     
@@ -446,15 +462,36 @@ export function DividendCapitalGainCalculator() {
                         Use the same dividend for all periods
                       </label>
                     </div>
-                    {useSingleDividend ? (
-                      <InputGroup
-                        id="currentDividend"
-                        label="Dividend (D₀)"
-                        value={currentDividend}
-                        onChange={setCurrentDividend}
-                        type="text"
-                        prefix="$"
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="useD1"
+                        checked={useD1}
+                        onCheckedChange={setUseD1}
                       />
+                      <label htmlFor="useD1" className="text-sm">
+                        Use next year's dividend (D₁)
+                      </label>
+                    </div>
+                    {useSingleDividend ? (
+                      useD1 ? (
+                        <InputGroup
+                          id="expectedDividend"
+                          label="Next Year's Dividend (D₁)"
+                          value={expectedDividend}
+                          onChange={setExpectedDividend}
+                          type="text"
+                          prefix="$"
+                        />
+                      ) : (
+                        <InputGroup
+                          id="currentDividend"
+                          label="Current Dividend (D₀)"
+                          value={currentDividend}
+                          onChange={setCurrentDividend}
+                          type="text"
+                          prefix="$"
+                        />
+                      )
                     ) : (
                       Array.from({ length: Number(numberOfPeriods) || 0 }).map((_, index) => (
                         <InputGroup
@@ -528,14 +565,35 @@ export function DividendCapitalGainCalculator() {
                 )}
                 {calculationType === "ggm" && (
                   <>
-                    <InputGroup
-                      id="currentDividend"
-                      label="Current Dividend (D₀)"
-                      value={currentDividend}
-                      onChange={setCurrentDividend}
-                      type="text"
-                      prefix="$"
-                    />
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="useD1"
+                        checked={useD1}
+                        onCheckedChange={setUseD1}
+                      />
+                      <label htmlFor="useD1" className="text-sm">
+                        Use next year's dividend (D₁)
+                      </label>
+                    </div>
+                    {useD1 ? (
+                      <InputGroup
+                        id="expectedDividend"
+                        label="Next Year's Dividend (D₁)"
+                        value={expectedDividend}
+                        onChange={setExpectedDividend}
+                        type="text"
+                        prefix="$"
+                      />
+                    ) : (
+                      <InputGroup
+                        id="currentDividend"
+                        label="Current Dividend (D₀)"
+                        value={currentDividend}
+                        onChange={setCurrentDividend}
+                        type="text"
+                        prefix="$"
+                      />
+                    )}
                     <InputGroup
                       id="requiredRateOfReturn"
                       label="Required Rate of Return (r)"
@@ -583,14 +641,35 @@ export function DividendCapitalGainCalculator() {
                 )}
                 {calculationType === "stockPricePerpetuity" && (
                   <>
-                    <InputGroup
-                      id="currentDividend"
-                      label="Current Dividend (D₀)"
-                      value={currentDividend}
-                      onChange={setCurrentDividend}
-                      type="text"
-                      prefix="$"
-                    />
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="useD1"
+                        checked={useD1}
+                        onCheckedChange={setUseD1}
+                      />
+                      <label htmlFor="useD1" className="text-sm">
+                        Use next year's dividend (D₁)
+                      </label>
+                    </div>
+                    {useD1 ? (
+                      <InputGroup
+                        id="expectedDividend"
+                        label="Next Year's Dividend (D₁)"
+                        value={expectedDividend}
+                        onChange={setExpectedDividend}
+                        type="text"
+                        prefix="$"
+                      />
+                    ) : (
+                      <InputGroup
+                        id="currentDividend"
+                        label="Current Dividend (D₀)"
+                        value={currentDividend}
+                        onChange={setCurrentDividend}
+                        type="text"
+                        prefix="$"
+                      />
+                    )}
                     <InputGroup
                       id="requiredRateOfReturn"
                       label="Required Rate of Return (r)"
