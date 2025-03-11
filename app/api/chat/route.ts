@@ -154,7 +154,7 @@ RESPONSE FORMAT:
    "📱 [Use the Perpetuity Calculator](/calculators/perpetuity)"
    "📱 [Use the Bond Calculator](/calculators/bond)"
    "📱 [Use the Tax Calculator](/calculators/tax)"
-   "📱 [Use the Dividend Calculator](/calculators/dividend)"
+   "📱 [Use the Stock Price Calculator](/calculators/dividend)"
 
 Example response:
 To calculate the Present Value, follow these steps:
