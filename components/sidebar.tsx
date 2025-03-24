@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Calculator, Percent, DollarSign, TrendingUp, Scale, Landmark, Coins, Menu, X } from "lucide-react";
+import { Calculator, Percent, DollarSign, TrendingUp, Scale, Landmark, Coins, Menu, X, LineChart} from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { CalculatorType } from "@/components/calculator-layout";
 import { ModeToggle } from "@/components/mode-toggle";
@@ -48,6 +48,11 @@ export function Sidebar({ activeCalculator, setActiveCalculator }: SidebarProps)
       id: "dividend",
       name: "Stock Price Calculator",
       icon: <DollarSign className="h-5 w-5" />, // Represents interest rates
+    },
+    {
+      id: "options",
+      name: "Option Calculator",
+      icon: <LineChart className="h-5 w-5" />, // Represents interest rates
     },
   ];
 

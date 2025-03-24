@@ -8,6 +8,7 @@ import { PerpetuityCalculator } from "./calculators/perpetuity-calculator"
 import { TaxCalculator } from "./calculators/tax-calculator"
 import { CouponBondCalculator } from "./calculators/bond-calculator"
 import { DividendCapitalGainCalculator } from "./calculators/dividend-calculator"
+import { TradingCalculator } from "./calculators/option-calculator"
 import { Chat } from "./chat"
 import { MessageCircle, X } from "lucide-react"
 import { Button } from "./ui/button"
@@ -19,6 +20,7 @@ export type CalculatorType =
   | "tax"
   | "bond"
   | "dividend"
+  | "options"
 
 export function CalculatorLayout() {
   const [activeCalculator, setActiveCalculator] = useState<CalculatorType>("lumpsum")
@@ -38,6 +40,8 @@ export function CalculatorLayout() {
         return <CouponBondCalculator />
       case "dividend":
         return <DividendCapitalGainCalculator />
+      case "options":
+        return <TradingCalculator />
     }
   }
 
