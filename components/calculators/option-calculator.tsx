@@ -137,7 +137,7 @@ function ProfitLossChart({
 }
 
 export function TradingCalculator() {
-    const [calcType, setCalcType] = useLocalStorage<"call" | "put" | "long" | "short">("calcType", "call");
+    const [calcType, setCalcType] = useLocalStorage<"call" | "put" | "long" | "short" | "straddle">("calcType", "call");
   const [position, setPosition] = useLocalStorage<"buy" | "sell">("position", "buy");
   
   // Common state with local storage
@@ -146,11 +146,13 @@ export function TradingCalculator() {
   const [quantity, setQuantity] = useLocalStorage<string>("quantity", "1");
   const [strikePrice, setStrikePrice] = useLocalStorage<string>("strikePrice", "");
   const [premium, setPremium] = useLocalStorage<string>("premium", "");
+  const [putPremium, setPutPremium] = useLocalStorage<string>("putPremium", "");
+  const [callPremium, setCallPremium] = useLocalStorage<string>("callPremium", "");
   const [activeTab, setActiveTab] = useLocalStorage<string>("activeTab", "calculator");
 
   // Non-stored states
   const [result, setResult] = useState<number | null>(null);
-  const [breakEven, setBreakEven] = useState<number | null>(null);
+  const [breakEven, setBreakEven] = useState<{ upper: number | null; lower: number | null }>({ upper: null, lower: null });
   const [maxProfit, setMaxProfit] = useState<number | null>(null);
   const [maxLoss, setMaxLoss] = useState<number | null>(null);
   const [chartData, setChartData] = useState<{ price: number; value: number }[]>([]);
@@ -182,6 +184,19 @@ export function TradingCalculator() {
         setError("Please enter a valid option premium.");
         return false;
       }
+    } else if (calcType === "straddle") {
+      const isStrikeValid = !isNaN(Number(strikePrice)) && Number(strikePrice) > 0;
+      const isPutPremiumValid = !isNaN(Number(putPremium)) && Number(putPremium) >= 0;
+      const isCallPremiumValid = !isNaN(Number(callPremium)) && Number(callPremium) >= 0;
+      
+      if (!isStrikeValid) {
+        setError("Please enter a valid strike price.");
+        return false;
+      }
+      if (!isPutPremiumValid || !isCallPremiumValid) {
+        setError("Please enter valid put and call premiums.");
+        return false;
+      }
     } else {
       const isEntryValid = !isNaN(Number(entryPrice)) && Number(entryPrice) > 0;
       if (!isEntryValid) {
@@ -197,27 +212,30 @@ export function TradingCalculator() {
     useEffect(() => {
       if (
         (currentPrice !== "" && quantity !== "" && 
-        ((calcType === "call" || calcType === "put") ? (strikePrice !== "" && premium !== "") : entryPrice !== ""))
+        ((calcType === "call" || calcType === "put") ? (strikePrice !== "" && premium !== "") : 
+         calcType === "straddle" ? (strikePrice !== "" && putPremium !== "" && callPremium !== "") : 
+         entryPrice !== ""))
       ) {
         if (validateInputs()) {
           calculatePosition();
         }
       } else {
         setResult(null);
-        setBreakEven(null);
+        setBreakEven({ upper: null, lower: null });
         setMaxProfit(null);
         setMaxLoss(null);
         setChartData([]);
         setError(null);
       }
-    }, [calcType, position, entryPrice, currentPrice, quantity, strikePrice, premium]);
+    }, [calcType, position, entryPrice, currentPrice, quantity, strikePrice, premium, putPremium, callPremium]);
   
     const calculatePosition = () => {
       try {
         const S = Number(currentPrice);
         const qty = Number(quantity);
         let profitLoss = 0;
-        let be = 0;
+        let beUpper = 0;
+        let beLower = 0;
         let mp = 0;
         let ml = 0;
   
@@ -226,12 +244,12 @@ export function TradingCalculator() {
           const P = Number(premium);
           if (position === "buy") {
             profitLoss = (Math.max(S - K, 0) - P) * qty;
-            be = K + P;
+            beUpper = K + P;
             mp = Infinity;
             ml = P * qty;
           } else {
             profitLoss = (P - Math.max(S - K, 0)) * qty;
-            be = K + P;
+            beUpper = K + P;
             mp = P * qty;
             ml = Infinity;
           }
@@ -241,33 +259,57 @@ export function TradingCalculator() {
           const P = Number(premium);
           if (position === "buy") {
             profitLoss = (Math.max(K - S, 0) - P) * qty;
-            be = K - P;
+            beLower = K - P;
             mp = (K - P) * qty;
             ml = P * qty;
           } else {
             profitLoss = (P - Math.max(K - S, 0)) * qty;
-            be = K - P;
+            beLower = K - P;
             mp = P * qty;
             ml = (K - P) * qty;
+          }
+        }
+        else if (calcType === "straddle") {
+          const K = Number(strikePrice);
+          const putP = Number(putPremium);
+          const callP = Number(callPremium);
+          const totalPremium = putP + callP;
+          
+          if (position === "buy") {
+            const callProfit = Math.max(S - K, 0) - callP;
+            const putProfit = Math.max(K - S, 0) - putP;
+            profitLoss = (callProfit + putProfit) * qty;
+            beUpper = K + totalPremium;
+            beLower = K - totalPremium;
+            mp = Infinity; // Unlimited profit if stock moves significantly in either direction
+            ml = totalPremium * qty; // Max loss if stock at strike at expiration
+          } else {
+            const callProfit = callP - Math.max(S - K, 0);
+            const putProfit = putP - Math.max(K - S, 0);
+            profitLoss = (callProfit + putProfit) * qty;
+            beUpper = K + totalPremium;
+            beLower = K - totalPremium;
+            mp = totalPremium * qty; // Max profit if stock at strike at expiration
+            ml = Infinity; // Unlimited loss if stock moves significantly in either direction
           }
         }
         else if (calcType === "long") {
           const entry = Number(entryPrice);
           profitLoss = (S - entry) * qty;
-          be = entry;
+          beUpper = entry;
           mp = Infinity;
           ml = entry * qty;
         }
         else if (calcType === "short") {
           const entry = Number(entryPrice);
           profitLoss = (entry - S) * qty;
-          be = entry;
+          beUpper = entry;
           mp = entry * qty;
           ml = Infinity;
         }
   
         setResult(profitLoss);
-        setBreakEven(be);
+        setBreakEven({ upper: beUpper, lower: beLower });
         setMaxProfit(mp);
         setMaxLoss(ml);
         generateChartData();
@@ -275,7 +317,7 @@ export function TradingCalculator() {
         console.error("Calculation error:", error);
         setError("An error occurred during calculation. Please check your inputs.");
         setResult(null);
-        setBreakEven(null);
+        setBreakEven({ upper: null, lower: null });
         setMaxProfit(null);
         setMaxLoss(null);
         setChartData([]);
@@ -288,7 +330,7 @@ export function TradingCalculator() {
       let maxPrice = 0;
       let referencePrice = 0;
       
-      if (calcType === "call" || calcType === "put") {
+      if (calcType === "call" || calcType === "put" || calcType === "straddle") {
         referencePrice = Number(strikePrice);
         minPrice = Math.max(0, referencePrice * 0.7);
         maxPrice = referencePrice * 1.3;
@@ -318,6 +360,21 @@ export function TradingCalculator() {
             ? (Math.max(K - price, 0) - P) * Number(quantity)
             : (P - Math.max(K - price, 0)) * Number(quantity);
         }
+        else if (calcType === "straddle") {
+          const K = Number(strikePrice);
+          const putP = Number(putPremium);
+          const callP = Number(callPremium);
+          
+          if (position === "buy") {
+            const callValue = Math.max(price - K, 0) - callP;
+            const putValue = Math.max(K - price, 0) - putP;
+            value = (callValue + putValue) * Number(quantity);
+          } else {
+            const callValue = callP - Math.max(price - K, 0);
+            const putValue = putP - Math.max(K - price, 0);
+            value = (callValue + putValue) * Number(quantity);
+          }
+        }
         else if (calcType === "long") {
           const entry = Number(entryPrice);
           value = (price - entry) * Number(quantity);
@@ -344,8 +401,10 @@ export function TradingCalculator() {
       setQuantity("1");
       setStrikePrice("");
       setPremium("");
+      setPutPremium("");
+      setCallPremium("");
       setResult(null);
-      setBreakEven(null);
+      setBreakEven({ upper: null, lower: null });
       setMaxProfit(null);
       setMaxLoss(null);
       setChartData([]);
@@ -381,26 +440,34 @@ export function TradingCalculator() {
                   <CardDescription>
                     {calcType === "call" ? "Call option details" :
                      calcType === "put" ? "Put option details" :
+                     calcType === "straddle" ? "Straddle details" :
                      calcType === "long" ? "Long position details" : "Short position details"}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Position Type:</label>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-3 gap-2">
                       <Button
                         variant={calcType === "call" ? "default" : "outline"}
                         onClick={() => setCalcType("call")}
                         className="w-full"
                       >
-                        Call Option
+                        Call
                       </Button>
                       <Button
                         variant={calcType === "put" ? "default" : "outline"}
                         onClick={() => setCalcType("put")}
                         className="w-full"
                       >
-                        Put Option
+                        Put
+                      </Button>
+                      <Button
+                        variant={calcType === "straddle" ? "default" : "outline"}
+                        onClick={() => setCalcType("straddle")}
+                        className="w-full"
+                      >
+                        Straddle
                       </Button>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
@@ -421,7 +488,7 @@ export function TradingCalculator() {
                     </div>
                   </div>
   
-                  {(calcType === "call" || calcType === "put") && (
+                  {(calcType === "call" || calcType === "put" || calcType === "straddle") && (
                     <div className="grid grid-cols-2 gap-2">
                       <Button
                         variant={position === "buy" ? "default" : "outline"}
@@ -440,21 +507,54 @@ export function TradingCalculator() {
                     </div>
                   )}
   
-                  {(calcType === "call" || calcType === "put") && (
+                  {(calcType === "call" || calcType === "put" || calcType === "straddle") && (
+                    <InputGroup
+                      id="strikePrice"
+                      label="Strike Price"
+                      value={strikePrice}
+                      onChange={setStrikePrice}
+                      type="text"
+                      prefix="$"
+                    />
+                  )}
+  
+                  {calcType === "call" && (
+                    <InputGroup
+                      id="premium"
+                      label="Call Premium"
+                      value={premium}
+                      onChange={setPremium}
+                      type="text"
+                      prefix="$"
+                    />
+                  )}
+  
+                  {calcType === "put" && (
+                    <InputGroup
+                      id="premium"
+                      label="Put Premium"
+                      value={premium}
+                      onChange={setPremium}
+                      type="text"
+                      prefix="$"
+                    />
+                  )}
+  
+                  {calcType === "straddle" && (
                     <>
                       <InputGroup
-                        id="strikePrice"
-                        label="Strike Price"
-                        value={strikePrice}
-                        onChange={setStrikePrice}
+                        id="callPremium"
+                        label="Call Premium"
+                        value={callPremium}
+                        onChange={setCallPremium}
                         type="text"
                         prefix="$"
                       />
                       <InputGroup
-                        id="premium"
-                        label="Option Premium"
-                        value={premium}
-                        onChange={setPremium}
+                        id="putPremium"
+                        label="Put Premium"
+                        value={putPremium}
+                        onChange={setPutPremium}
                         type="text"
                         prefix="$"
                       />
@@ -483,7 +583,7 @@ export function TradingCalculator() {
   
                   <InputGroup
                     id="quantity"
-                    label={calcType === "call" || calcType === "put" ? "Contracts" : "Shares"}
+                    label={calcType === "call" || calcType === "put" || calcType === "straddle" ? "Contracts" : "Shares"}
                     value={quantity}
                     onChange={setQuantity}
                     type="text"
@@ -498,6 +598,7 @@ export function TradingCalculator() {
                     <CardDescription>
                       {position === "buy" ? "Buy" : "Sell"} {calcType === "call" ? "call option" :
                        calcType === "put" ? "put option" :
+                       calcType === "straddle" ? "straddle" :
                        calcType === "long" ? "long position" : "short position"} analysis
                     </CardDescription>
                   </CardHeader>
@@ -512,7 +613,11 @@ export function TradingCalculator() {
                       <div className="space-y-1">
                         <p className="text-sm text-gray-500">Break-even</p>
                         <p className="text-2xl font-bold">
-                          {breakEven !== null ? `$${breakEven.toFixed(2)}` : "—"}
+                          {breakEven.upper !== null && breakEven.lower !== null ? 
+                            (calcType === "straddle" ? 
+                              `$${breakEven.lower.toFixed(2)} / $${breakEven.upper.toFixed(2)}` : 
+                              `$${calcType === "put" ? breakEven.lower?.toFixed(2) : breakEven.upper?.toFixed(2)}`) : 
+                            "—"}
                         </p>
                       </div>
                       <div className="space-y-1">
@@ -546,10 +651,10 @@ export function TradingCalculator() {
                       <ProfitLossChart 
                         data={chartData} 
                         referencePrice={
-                          calcType === "call" || calcType === "put" ? Number(strikePrice) : Number(entryPrice)
+                          calcType === "call" || calcType === "put" || calcType === "straddle" ? Number(strikePrice) : Number(entryPrice)
                         } 
                         currentPrice={Number(currentPrice)} 
-                        label={calcType === "call" || calcType === "put" ? "Strike" : "Entry"}
+                        label={calcType === "call" || calcType === "put" || calcType === "straddle" ? "Strike" : "Entry"}
                       />
                     ) : (
                       <div className="flex h-full items-center justify-center text-gray-400">
@@ -576,6 +681,8 @@ export function TradingCalculator() {
                     <li><strong>Write Call</strong>: Obligation to sell stock at strike price. Profit when stock stays below strike + premium.</li>
                     <li><strong>Buy Put</strong>: Right to sell stock at strike price. Profit when stock falls below strike - premium.</li>
                     <li><strong>Write Put</strong>: Obligation to buy stock at strike price. Profit when stock stays above strike - premium.</li>
+                    <li><strong>Buy Straddle</strong>: Buying both a call and put at same strike. Profit when stock moves significantly in either direction.</li>
+                    <li><strong>Write Straddle</strong>: Selling both a call and put at same strike. Profit when stock stays near the strike price.</li>
                     <li><strong>Long Stock</strong>: Buying stock expecting price increase. Profit when price rises.</li>
                     <li><strong>Short Stock</strong>: Selling borrowed stock expecting price decrease. Profit when price falls.</li>
                   </ul>
@@ -607,6 +714,18 @@ export function TradingCalculator() {
                       <p className="font-mono text-sm">(Premium - Max(0, Strike - Current)) × Contracts</p>
                       <p className="mt-1 text-sm">Max Profit: Premium Received</p>
                       <p className="text-sm">Max Loss: Strike - Premium</p>
+                    </div>
+                    <div>
+                      <h4 className="font-medium">Buy Straddle</h4>
+                      <p className="font-mono text-sm">(Max(0, Current - Strike) - CallP + Max(0, Strike - Current) - PutP) × Contracts</p>
+                      <p className="mt-1 text-sm">Max Profit: Unlimited (both directions)</p>
+                      <p className="text-sm">Max Loss: Total Premium Paid</p>
+                    </div>
+                    <div>
+                      <h4 className="font-medium">Sell Straddle</h4>
+                      <p className="font-mono text-sm">(CallP - Max(0, Current - Strike) + PutP - Max(0, Strike - Current)) × Contracts</p>
+                      <p className="mt-1 text-sm">Max Profit: Total Premium Received</p>
+                      <p className="text-sm">Max Loss: Unlimited (both directions)</p>
                     </div>
                     <div>
                       <h4 className="font-medium">Long Stock</h4>
@@ -645,6 +764,19 @@ export function TradingCalculator() {
                       <p className="mb-2 text-sm font-medium">Sell Put:</p>
                       <p className="text-sm">Sell 1 $100 put @ $5 premium</p>
                       <p className="text-sm">Stock at $110: $5 profit (full premium)</p>
+                    </div>
+                    <div>
+                      <p className="mb-2 text-sm font-medium">Buy Straddle:</p>
+                      <p className="text-sm">Buy 1 $100 call @ $5 and 1 $100 put @ $5</p>
+                      <p className="text-sm">Stock at $110: ($110 - $100 - $5) + ($0 - $5) = $0</p>
+                      <p className="text-sm">Stock at $90: ($0 - $5) + ($100 - $90 - $5) = $0</p>
+                      <p className="text-sm">Stock at $120: ($120 - $100 - $5) + ($0 - $5) = $10 profit</p>
+                    </div>
+                    <div>
+                      <p className="mb-2 text-sm font-medium">Sell Straddle:</p>
+                      <p className="text-sm">Sell 1 $100 call @ $5 and 1 $100 put @ $5</p>
+                      <p className="text-sm">Stock at $100: $5 + $5 = $10 profit (full premium)</p>
+                      <p className="text-sm">Stock at $110: ($5 - $10) + ($5 - $0) = $0</p>
                     </div>
                     <div>
                       <p className="mb-2 text-sm font-medium">Long Stock:</p>
