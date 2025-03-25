@@ -435,7 +435,7 @@ export function TradingCalculator() {
                         onClick={() => setPosition("sell")}
                         className="w-full"
                       >
-                        Sell
+                        Write
                       </Button>
                     </div>
                   )}
@@ -573,9 +573,9 @@ export function TradingCalculator() {
                   <h3 className="mb-2 font-semibold">Key Concepts</h3>
                   <ul className="ml-6 list-disc space-y-2">
                     <li><strong>Buy Call</strong>: Right to buy stock at strike price. Profit when stock rises above strike + premium.</li>
-                    <li><strong>Sell Call</strong>: Obligation to sell stock at strike price. Profit when stock stays below strike + premium.</li>
+                    <li><strong>Write Call</strong>: Obligation to sell stock at strike price. Profit when stock stays below strike + premium.</li>
                     <li><strong>Buy Put</strong>: Right to sell stock at strike price. Profit when stock falls below strike - premium.</li>
-                    <li><strong>Sell Put</strong>: Obligation to buy stock at strike price. Profit when stock stays above strike - premium.</li>
+                    <li><strong>Write Put</strong>: Obligation to buy stock at strike price. Profit when stock stays above strike - premium.</li>
                     <li><strong>Long Stock</strong>: Buying stock expecting price increase. Profit when price rises.</li>
                     <li><strong>Short Stock</strong>: Selling borrowed stock expecting price decrease. Profit when price falls.</li>
                   </ul>
