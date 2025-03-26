@@ -411,6 +411,19 @@ export function TradingCalculator() {
       setError(null);
       localStorage.removeItem("tradingCalculatorState");
     };
+
+    const getOptionStatus = (calcType: string, currentPrice: number, strikePrice: number) => {
+      if (isNaN(currentPrice)) return null;
+      if (isNaN(strikePrice)) return null;
+      if (calcType !== "call" && calcType !== "put") return null;
+      
+      if (calcType === "call") {
+        return currentPrice > strikePrice ? "In the Money" : "Out of the Money";
+      } else if (calcType === "put") {
+        return currentPrice < strikePrice ? "In the Money" : "Out of the Money";
+      }
+      return null;
+    };
   
     return (
       <div className="space-y-8">
@@ -592,46 +605,59 @@ export function TradingCalculator() {
               </Card>
   
               <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Results</CardTitle>
-                    <CardDescription>
-                      {position === "buy" ? "Buy" : "Sell"} {calcType === "call" ? "call option" :
-                       calcType === "put" ? "put option" :
-                       calcType === "straddle" ? "straddle" :
-                       calcType === "long" ? "long position" : "short position"} analysis
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 gap-4 py-4">
-                      <div className="space-y-1">
-                        <p className="text-sm text-gray-500">Profit/Loss</p>
-                        <p className={`text-2xl font-bold ${result !== null ? (result >= 0 ? "text-green-600" : "text-red-600") : ""}`}>
-                          {result !== null ? `$${result.toFixed(2)}` : "—"}
-                        </p>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-sm text-gray-500">Break-even</p>
-                        <p className="text-2xl font-bold">
-                          {breakEven.upper !== null && breakEven.lower !== null ? 
-                            (calcType === "straddle" ? 
-                              `$${breakEven.lower.toFixed(2)} / $${breakEven.upper.toFixed(2)}` : 
-                              `$${calcType === "put" ? breakEven.lower?.toFixed(2) : breakEven.upper?.toFixed(2)}`) : 
-                            "—"}
-                        </p>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-sm text-gray-500">Max Profit</p>
-                        <p className="text-2xl font-bold">
-                          {maxProfit !== null ? (maxProfit === Infinity ? "∞" : `$${maxProfit.toFixed(2)}`) : "—"}
-                        </p>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-sm text-gray-500">Max Loss</p>
-                        <p className="text-2xl font-bold">
-                          {maxLoss !== null ? (maxLoss === Infinity ? "∞" : `$${maxLoss.toFixed(2)}`) : "—"}
-                        </p>
-                      </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Results</CardTitle>
+                  <CardDescription>
+                    {position === "buy" ? "Buy" : "Sell"} {calcType === "call" ? "call option" :
+                    calcType === "put" ? "put option" :
+                    calcType === "straddle" ? "straddle" :
+                    calcType === "long" ? "long position" : "short position"} analysis
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4 py-4">
+                    <div className="space-y-1">
+                      <p className="text-sm text-gray-500">Profit/Loss</p>
+                      <p className={`text-2xl font-bold ${result !== null ? (result >= 0 ? "text-green-600" : "text-red-600") : ""}`}>
+                        {result !== null ? `$${result.toFixed(2)}` : "—"}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-gray-500">Break-even</p>
+                      <p className="text-2xl font-bold">
+                        {breakEven.upper !== null && breakEven.lower !== null ? 
+                          (calcType === "straddle" ? 
+                            `$${breakEven.lower.toFixed(2)} / $${breakEven.upper.toFixed(2)}` : 
+                            `$${calcType === "put" ? breakEven.lower?.toFixed(2) : breakEven.upper?.toFixed(2)}`) : 
+                          "—"}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-gray-500">Max Profit</p>
+                      <p className="text-2xl font-bold">
+                        {maxProfit !== null ? (maxProfit === Infinity ? "∞" : `$${maxProfit.toFixed(2)}`) : "—"}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-gray-500">Max Loss</p>
+                      <p className="text-2xl font-bold">
+                        {maxLoss !== null ? (maxLoss === Infinity ? "∞" : `$${maxLoss.toFixed(2)}`) : "—"}
+                      </p>
+                    </div>
+                    {/* Only show option status when all conditions are met */}
+                    {(calcType === "call" || calcType === "put") && 
+                      currentPrice && !isNaN(Number(currentPrice)) && 
+                      strikePrice && !isNaN(Number(strikePrice)) && (
+                        <div className="space-y-1">
+                          <p className="text-sm text-gray-500">Option Status</p>
+                          <p className="text-2xl font-bold">
+                            {Number(currentPrice) > Number(strikePrice) && calcType === "call" ? "In the Money" : 
+                            Number(currentPrice) < Number(strikePrice) && calcType === "put" ? "In the Money" : 
+                            "Out of the Money"}
+                          </p>
+                        </div>
+                      )}
                     </div>
                     {error && (
                       <div className="mt-4 rounded-md bg-red-50 p-4 dark:bg-red-900/20">
@@ -640,6 +666,7 @@ export function TradingCalculator() {
                     )}
                   </CardContent>
                 </Card>
+
   
                 <Card>
                   <CardHeader>
