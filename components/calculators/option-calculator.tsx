@@ -652,7 +652,8 @@ export function TradingCalculator() {
                         <div className="space-y-1">
                           <p className="text-sm text-gray-500">Option Status</p>
                           <p className="text-2xl font-bold">
-                            {Number(currentPrice) > Number(strikePrice) && calcType === "call" ? "In the Money" : 
+                            {Number(currentPrice) === Number(strikePrice) ? "At the Money" : 
+                            Number(currentPrice) > Number(strikePrice) && calcType === "call" ? "In the Money" : 
                             Number(currentPrice) < Number(strikePrice) && calcType === "put" ? "In the Money" : 
                             "Out of the Money"}
                           </p>
