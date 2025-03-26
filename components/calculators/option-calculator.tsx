@@ -411,20 +411,6 @@ export function TradingCalculator() {
       setError(null);
       localStorage.removeItem("tradingCalculatorState");
     };
-
-    const getOptionStatus = (calcType: string, currentPrice: number, strikePrice: number) => {
-      if (isNaN(currentPrice)) return null;
-      if (isNaN(strikePrice)) return null;
-      if (calcType !== "call" && calcType !== "put") return null;
-      
-      if (calcType === "call") {
-        return currentPrice > strikePrice ? "In the Money" : "Out of the Money";
-      } else if (calcType === "put") {
-        return currentPrice < strikePrice ? "In the Money" : "Out of the Money";
-      }
-      return null;
-    };
-  
     return (
       <div className="space-y-8">
         <div className="flex items-center justify-between">
