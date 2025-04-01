@@ -54,6 +54,11 @@ export function Sidebar({ activeCalculator, setActiveCalculator }: SidebarProps)
       name: "Option Calculator",
       icon: <LineChart className="h-5 w-5" />, // Represents interest rates
     },
+    {
+      id: "budget",
+      name: "Capital Budgeting Calculator",
+      icon: <LineChart className="h-5 w-5" />, // Represents interest rates
+    },
   ];
 
   return (

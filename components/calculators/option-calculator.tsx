@@ -411,6 +411,7 @@ export function TradingCalculator() {
       setError(null);
       localStorage.removeItem("tradingCalculatorState");
     };
+    
     return (
       <div className="space-y-8">
         <div className="flex items-center justify-between">

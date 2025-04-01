@@ -155,6 +155,8 @@ RESPONSE FORMAT:
    "📱 [Use the Bond Calculator](/calculators/bond)"
    "📱 [Use the Tax Calculator](/calculators/tax)"
    "📱 [Use the Stock Price Calculator](/calculators/dividend)"
+   "📱 [Use the Options Calculator](/calculators/option)"
+   "📱 [Use the Stock Price Calculator](/calculators/capital-budget)"
 
 Example response:
 To calculate the Present Value, follow these steps:
