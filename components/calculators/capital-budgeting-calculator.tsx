@@ -18,13 +18,11 @@ export function CapitalBudgetingCalculator() {
   // Cash flow states (used in both cashflow and capitalBudgeting modes)
   const [cashFlows, setCashFlows] = useState<{year: number, amount: string}[]>([
     {year: 1, amount: ""},
-    {year: 2, amount: ""},
-    {year: 3, amount: ""}
   ]);
   
   // Depreciation states
   const [assetCost, setAssetCost] = useState<string>("");
-  const [salvageValue, setSalvageValue] = useState<string>("");
+  const [salvageValue, setSalvageValue] = useState<string>("0");
   const [usefulLife, setUsefulLife] = useState<string>("5");
   
   // Cash flow generation states
@@ -40,7 +38,7 @@ export function CapitalBudgetingCalculator() {
     outflow: "",
     taxRate: "",
     years: "5",
-    includeDepreciation: false,
+    includeDepreciation: true,
     depreciationAmount: ""
   });
   
@@ -74,19 +72,17 @@ export function CapitalBudgetingCalculator() {
         setDiscountRate(parsedState.discountRate || "");
         setCashFlows(parsedState.cashFlows || [
           {year: 1, amount: ""},
-          {year: 2, amount: ""},
-          {year: 3, amount: ""}
         ]);
         setMode(parsedState.mode || "cashflow");
         setAssetCost(parsedState.assetCost || "");
-        setSalvageValue(parsedState.salvageValue || "");
+        setSalvageValue(parsedState.salvageValue || "0");
         setUsefulLife(parsedState.usefulLife || "5");
         setCashFlowInputs(parsedState.cashFlowInputs || {
           inflow: "",
           outflow: "",
           taxRate: "",
           years: "5",
-          includeDepreciation: false,
+          includeDepreciation: true,
           depreciationAmount: ""
         });
       } catch (e) {
