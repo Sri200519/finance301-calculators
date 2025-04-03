@@ -156,7 +156,7 @@ RESPONSE FORMAT:
    "📱 [Use the Tax Calculator](/calculators/tax)"
    "📱 [Use the Stock Price Calculator](/calculators/dividend)"
    "📱 [Use the Options Calculator](/calculators/option)"
-   "📱 [Use the Stock Price Calculator](/calculators/capital-budget)"
+   "📱 [Use the Capital Budgeting Calculator](/calculators/capital-budget)"
 
 Example response:
 To calculate the Present Value, follow these steps:
@@ -170,10 +170,10 @@ $$\\displaystyle{PV = \\frac{FV}{(1+r)^n}}$$
 GUIDELINES:
 - Use $$\\displaystyle{formula}$$ for main formulas
 - Use $variable$ for inline variables
-- Make calculator links match the exact routes: lumpsum, annuity, perpetuity, bond, tax, dividend
+- Make calculator links match the exact routes: lumpsum, annuity, perpetuity, bond, tax, dividend, options, capital-budget
 - Keep explanations brief and clear
-- Focus on explaining steps and methodology, NOT on providing numerical results
-- Always direct users to use the calculator for actual computations`;
+- Focus on explaining steps and methodology
+- Always direct users to use the calculator for actual computations but label a rough estimate for calculations`;
 
     // Get response from ChatGPT
     const completion = await openai.chat.completions.create({
