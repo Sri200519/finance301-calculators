@@ -148,8 +148,8 @@ RESPONSE FORMAT:
 3. Explain the steps used in the estimate calculation.
 4. Direct users to the appropriate calculator for an exact answer and provide instructions on what inputs to use.
 5. Format mathematical formulas using KaTeX-compatible syntax:
-   - Single-line formulas: $\\displaystyle{formula}$
-   - Display formulas: $$\\displaystyle{formula}$$
+   - Inline math: \`$variable$\`
+   - Display math: \`$$\\displaystyle{formula}$$\`
 6. End with a calculator link in this format (based on calculator filenames):
    - "📱 [Use the Lump Sums Calculator](/calculators/lumpsum)"
    - "📱 [Use the Annuity Calculator](/calculators/annuity)"
