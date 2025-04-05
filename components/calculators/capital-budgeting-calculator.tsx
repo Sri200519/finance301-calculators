@@ -204,7 +204,30 @@ export function CapitalBudgetingCalculator() {
     }));
     setCashFlows(newCashFlows);
   };
+
+  const calculateBudgetingMetrics = () => {
+  if (!results.annualCashFlows) return;
+
+  // Set the cash flows for capital budgeting with truncated decimals
+  const newCashFlows = results.annualCashFlows.map(flow => ({
+    year: flow.year,
+    amount: truncateDecimal(flow.amount, 2).toString()
+  }));
   
+  setCashFlows(newCashFlows);
+  setMode("capitalBudgeting");
+  
+  // If initial investment is empty, use the asset cost if available
+  if (initialInvestment === "" && assetCost !== "") {
+    setInitialInvestment(assetCost);
+  }
+};
+
+// Helper function to truncate decimals without rounding
+const truncateDecimal = (num: number, decimalPlaces: number) => {
+  const factor = Math.pow(10, decimalPlaces);
+  return Math.floor(num * factor) / factor;
+};
   // Calculate capital budgeting metrics
   const calculateCapitalBudgeting = () => {
     if (!validateInputs()) return;
@@ -755,6 +778,7 @@ export function CapitalBudgetingCalculator() {
                     )}
 
                     {/* Cash Flow Results */}
+                    {/* Cash Flow Results */}
                     {mode === "cashflow" && results.annualCashFlows !== null && (
                       <div className="space-y-4">
                         <div className="space-y-2">
@@ -789,6 +813,15 @@ export function CapitalBudgetingCalculator() {
                             </div>
                           </div>
                         )}
+
+                        {/* Add this button to calculate budgeting metrics */}
+                        <Button
+                          variant="default"
+                          onClick={calculateBudgetingMetrics}
+                          className="w-full mt-4"
+                        >
+                          Calculate Capital Budgeting Metrics
+                        </Button>
                       </div>
                     )}
 
