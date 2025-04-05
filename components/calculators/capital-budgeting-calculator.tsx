@@ -14,6 +14,7 @@ export function CapitalBudgetingCalculator() {
   // Common states
   const [initialInvestment, setInitialInvestment] = useState<string>("");
   const [discountRate, setDiscountRate] = useState<string>("");
+  const [uniformCashFlow, setUniformCashFlow] = useState<string>("");
   
   // Cash flow states (used in both cashflow and capitalBudgeting modes)
   const [cashFlows, setCashFlows] = useState<{year: number, amount: string}[]>([
@@ -33,13 +34,15 @@ export function CapitalBudgetingCalculator() {
     years: string;
     includeDepreciation: boolean;
     depreciationAmount: string;
+    projectDuration: string;
   }>({
     inflow: "",
     outflow: "",
     taxRate: "",
     years: "5",
     includeDepreciation: true,
-    depreciationAmount: ""
+    depreciationAmount: "",
+    projectDuration: "5"
   });
   
   // Results states
@@ -83,7 +86,8 @@ export function CapitalBudgetingCalculator() {
           taxRate: "",
           years: "5",
           includeDepreciation: true,
-          depreciationAmount: ""
+          depreciationAmount: "",
+          projectDuration: "5"
         });
       } catch (e) {
         console.error("Error parsing saved state:", e);
@@ -101,7 +105,8 @@ export function CapitalBudgetingCalculator() {
       assetCost,
       salvageValue,
       usefulLife,
-      cashFlowInputs
+      cashFlowInputs,
+      uniformCashFlow
     };
     localStorage.setItem("capitalBudgetingCalculatorState", JSON.stringify(stateToSave));
   }, [
@@ -112,7 +117,8 @@ export function CapitalBudgetingCalculator() {
     assetCost,
     salvageValue,
     usefulLife,
-    cashFlowInputs
+    cashFlowInputs,
+    uniformCashFlow
   ]);
 
   // Validate inputs based on mode
@@ -164,6 +170,10 @@ export function CapitalBudgetingCalculator() {
         setError("Please enter a valid number of Years");
         return false;
       }
+      if (isNaN(Number(cashFlowInputs.projectDuration)) || Number(cashFlowInputs.projectDuration) <= 0) {
+        setError("Please enter a valid Project Duration");
+        return false;
+      }
       if (cashFlowInputs.includeDepreciation && isNaN(Number(cashFlowInputs.depreciationAmount))) {
         setError("Please enter a valid Depreciation Amount");
         return false;
@@ -185,6 +195,16 @@ export function CapitalBudgetingCalculator() {
     }
   }, [mode, initialInvestment, discountRate, cashFlows, assetCost, salvageValue, usefulLife, cashFlowInputs]);
 
+  const applyUniformCashFlow = () => {
+    if (uniformCashFlow === "" || isNaN(Number(uniformCashFlow))) return;
+    
+    const newCashFlows = cashFlows.map(flow => ({
+      ...flow,
+      amount: uniformCashFlow
+    }));
+    setCashFlows(newCashFlows);
+  };
+  
   // Calculate capital budgeting metrics
   const calculateCapitalBudgeting = () => {
     if (!validateInputs()) return;
@@ -281,12 +301,13 @@ export function CapitalBudgetingCalculator() {
       const outflow = Number(cashFlowInputs.outflow);
       const taxRateDecimal = Number(cashFlowInputs.taxRate) / 100;
       const years = Number(cashFlowInputs.years);
-      
-      // Auto-calculate depreciation if enabled and asset cost exists
+      const projectDuration = Number(cashFlowInputs.projectDuration);
+  
+      // Calculate depreciation
       let depreciation = 0;
       if (cashFlowInputs.includeDepreciation && initialInvestment !== "") {
         const assetCost = Number(initialInvestment);
-        depreciation = assetCost / years; // Straight-line with zero salvage
+        depreciation = assetCost / projectDuration;
         setCashFlowInputs(prev => ({
           ...prev,
           depreciationAmount: depreciation.toFixed(2)
@@ -294,7 +315,7 @@ export function CapitalBudgetingCalculator() {
       } else if (cashFlowInputs.includeDepreciation) {
         depreciation = Number(cashFlowInputs.depreciationAmount);
       }
-      
+  
       // Calculate cash flows
       const annualCashFlows = Array.from({length: years}, (_, i) => {
         const taxableIncome = inflow - outflow - depreciation;
@@ -315,9 +336,11 @@ export function CapitalBudgetingCalculator() {
       }));
   
     } catch (error) {
-      setError("Error in cash flow calculation");
+      console.error("Cash flow calculation error:", error);
+      setError("Error in cash flow calculation. Please check your inputs.");
     }
   };
+
   // IRR calculation using Newton-Raphson method
   const calculateIRR = (initialInvestment: number, cashFlows: number[]): number => {
     let guess = 0.1;
@@ -431,7 +454,8 @@ export function CapitalBudgetingCalculator() {
       taxRate: "",
       years: "5",
       includeDepreciation: false,
-      depreciationAmount: ""
+      depreciationAmount: "",
+      projectDuration: "5"
     });
     setResults({
       npv: null,
@@ -442,6 +466,7 @@ export function CapitalBudgetingCalculator() {
       annualCashFlows: null
     });
     setError(null);
+    setUniformCashFlow("");
     localStorage.removeItem("capitalBudgetingCalculatorState");
   };
 
@@ -592,9 +617,16 @@ export function CapitalBudgetingCalculator() {
                       />
                       <InputGroup
                         id="projectYears"
-                        label="Project Duration (years)"
+                        label="Cash Flow Duration (years)"
                         value={cashFlowInputs.years}
                         onChange={(value) => updateCashFlowInput("years", value)}
+                        type="text"
+                      />
+                      <InputGroup
+                        id="projectDuration"
+                        label="Project Duration (years)"
+                        value={cashFlowInputs.projectDuration}
+                        onChange={(value) => updateCashFlowInput("projectDuration", value)}
                         type="text"
                       />
                       <div className="flex items-center space-x-2">
@@ -626,6 +658,29 @@ export function CapitalBudgetingCalculator() {
                   {mode === "capitalBudgeting" && (
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Cash Flows:</label>
+                      
+                      {/* Add uniform cash flow input */}
+                      <div className="flex gap-2 items-end">
+                        <InputGroup
+                          id="uniformCashFlow"
+                          label="Uniform Cash Flow"
+                          value={uniformCashFlow}
+                          onChange={setUniformCashFlow}
+                          type="text"
+                          prefix="$"
+                          className="flex-1"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={applyUniformCashFlow}
+                          className="flex items-center gap-1 h-10"
+                        >
+                          <Calculator className="h-4 w-4" />
+                          Apply to All
+                        </Button>
+                      </div>
+                      
                       <div className="space-y-3">
                         {cashFlows.map((flow, index) => (
                           <InputGroup
