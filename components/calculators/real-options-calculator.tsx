@@ -11,7 +11,7 @@ export function RealOptionsCalculator() {
   const [probability, setProbability] = useState("50");
   const [franchiseValue, setFranchiseValue] = useState("");
   const [noFranchiseValue, setNoFranchiseValue] = useState("");
-  const [costs, setCosts] = useState<string[]>(["1"]);
+  const [costs, setCosts] = useState<string[]>([""]);
   const [activeTab, setActiveTab] = useState("calculator");
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -98,7 +98,7 @@ export function RealOptionsCalculator() {
     setProbability("50");
     setFranchiseValue("");
     setNoFranchiseValue("");
-    setCosts(["1"]);
+    setCosts([""]);
     setResult(null);
     setBreakevenProbability(null);
     setTree([]);
@@ -108,7 +108,7 @@ export function RealOptionsCalculator() {
       probability: "50",
       franchiseValue: "",
       noFranchiseValue: "",
-      costs: ["1"],
+      costs: [""],
       activeTab
     };
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(resetState));
@@ -138,7 +138,7 @@ export function RealOptionsCalculator() {
         setProbability(parsed.probability || "50");
         setFranchiseValue(parsed.franchiseValue || "");
         setNoFranchiseValue(parsed.noFranchiseValue || "");
-        setCosts(parsed.costs || ["1"]);
+        setCosts(parsed.costs || [""]);
         setActiveTab(parsed.activeTab || "calculator");
       }
     } catch (error) {
