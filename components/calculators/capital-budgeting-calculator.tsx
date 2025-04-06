@@ -9,7 +9,7 @@ import { AlertCircle, RefreshCw, Plus, Minus, Calculator } from "lucide-react";
 
 export function CapitalBudgetingCalculator() {
   // State for calculation mode
-  const [mode, setMode] = useState<"cashflow" | "depreciation" | "capitalBudgeting">("cashflow");
+  const [mode, setMode] = useState<"cashflow" | "depreciation" | "capitalBudgeting">("capitalBudgeting");
   
   // Common states
   const [initialInvestment, setInitialInvestment] = useState<string>("");
@@ -76,7 +76,7 @@ export function CapitalBudgetingCalculator() {
         setCashFlows(parsedState.cashFlows || [
           {year: 1, amount: ""},
         ]);
-        setMode(parsedState.mode || "cashflow");
+        setMode(parsedState.mode || "capitalBudgeting");
         setAssetCost(parsedState.assetCost || "");
         setSalvageValue(parsedState.salvageValue || "0");
         setUsefulLife(parsedState.usefulLife || "5");
@@ -465,8 +465,6 @@ const truncateDecimal = (num: number, decimalPlaces: number) => {
     setDiscountRate("");
     setCashFlows([
       {year: 1, amount: ""},
-      {year: 2, amount: ""},
-      {year: 3, amount: ""}
     ]);
     setAssetCost("");
     setSalvageValue("");
