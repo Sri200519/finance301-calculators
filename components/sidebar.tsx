@@ -59,6 +59,11 @@ export function Sidebar({ activeCalculator, setActiveCalculator }: SidebarProps)
       name: "Capital Budgeting Calculator",
       icon: <Banknote className="h-5 w-5" />, // Represents interest rates
     },
+    {
+      id: "real-options",
+      name: "Real Options Calculator",
+      icon: <Banknote className="h-5 w-5" />, // Represents interest rates
+    },
   ];
 
   return (

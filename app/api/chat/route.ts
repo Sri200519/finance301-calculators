@@ -159,6 +159,7 @@ RESPONSE FORMAT:
    - "📱 [Use the Stock Price Calculator](/calculators/dividend)"
    - "📱 [Use the Options Calculator](/calculators/option)"
    - "📱 [Use the Capital Budgeting Calculator](/calculators/capital-budget)"
+   - "📱 [Use the Real Options Calculator](/calculators/real-options)"
 
 ### Example Response:
 

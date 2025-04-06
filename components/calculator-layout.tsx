@@ -10,6 +10,7 @@ import { CouponBondCalculator } from "./calculators/bond-calculator"
 import { DividendCapitalGainCalculator } from "./calculators/dividend-calculator"
 import { TradingCalculator } from "./calculators/option-calculator"
 import { CapitalBudgetingCalculator } from "./calculators/capital-budgeting-calculator"
+import { RealOptionsCalculator } from "./calculators/real-options-calculator"
 import { Chat } from "./chat"
 import { MessageCircle, X } from "lucide-react"
 import { Button } from "./ui/button"
@@ -23,6 +24,7 @@ export type CalculatorType =
   | "dividend"
   | "options"
   | "budget"
+  | "real-options"
 
 export function CalculatorLayout() {
   const [activeCalculator, setActiveCalculator] = useState<CalculatorType>("lumpsum")
@@ -46,6 +48,8 @@ export function CalculatorLayout() {
         return <TradingCalculator />
       case "budget":
         return <CapitalBudgetingCalculator />
+      case "real-options":
+        return <RealOptionsCalculator />
     }
   }
 
