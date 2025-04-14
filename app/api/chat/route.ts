@@ -160,6 +160,7 @@ RESPONSE FORMAT:
    - "📱 [Use the Options Calculator](/calculators/option)"
    - "📱 [Use the Capital Budgeting Calculator](/calculators/capital-budget)"
    - "📱 [Use the Real Options Calculator](/calculators/real-options)"
+   - "📱 [Use the Risk Calculator](/calculators/risk)"
 
 ### Example Response:
 
