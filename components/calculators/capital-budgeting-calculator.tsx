@@ -131,7 +131,7 @@ export function CapitalBudgetingCalculator() {
       if (isNaN(Number(discountRate))) {
         setError("Please enter a valid Discount Rate");
         return false;
-      }
+      } 
       if (cashFlows.some(flow => isNaN(Number(flow.amount)))) {
         setError("Please enter valid numbers for all cash flows");
         return false;
