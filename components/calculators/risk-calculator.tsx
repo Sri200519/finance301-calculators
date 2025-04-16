@@ -107,6 +107,7 @@ export function RiskCalculator() {
     useState("proportion");
   const [assetValue, setAssetValue] = useState("");
   const [portfolioTotal, setPortfolioTotal] = useState("");
+  const [portfolioVariance, setPortfolioVariance] = useState<number | null>(null);
   const [portfolioProportion, setPortfolioProportion] = useState<
     number | null
   >(null);
@@ -136,6 +137,7 @@ export function RiskCalculator() {
     const cov = Number(portfolioSD_cov);
     const portVar = Math.pow(w1, 2) * var1 + Math.pow(w2, 2) * var2 +
       2 * w1 * w2 * cov;
+    setPortfolioVariance(portVar);
     setPortfolioSD_result(Math.sqrt(portVar));
   };
 
@@ -1135,25 +1137,42 @@ export function RiskCalculator() {
           </div>
         );
 
-      case "portfolio":
-        return (
-          <div className="flex flex-col items-center justify-center space-y-2">
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              {activePortfolioMethod === "proportion"
-                ? "Portfolio Proportion"
-                : "Portfolio Standard Deviation"}
+        case "portfolio":
+          return (
+            <div className="space-y-4 w-full">
+              {activePortfolioMethod === "proportion" ? (
+                <div className="flex flex-col items-center justify-center space-y-2">
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    Portfolio Proportion
+                  </div>
+                  <div className="text-3xl font-bold">
+                    {portfolioProportion !== null
+                      ? `${(portfolioProportion * 100).toFixed(2)}%`
+                      : "—"}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center border-b pb-2">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      Portfolio Variance:
+                    </span>
+                    <span className="text-lg font-medium">
+                      {portfolioVariance !== null ? portfolioVariance.toFixed(4) : "—"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      Portfolio Standard Deviation:
+                    </span>
+                    <span className="text-lg font-medium">
+                      {portfolioSD_result !== null ? portfolioSD_result.toFixed(4) : "—"}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="text-3xl font-bold">
-              {activePortfolioMethod === "proportion"
-                ? portfolioProportion !== null
-                  ? `${(portfolioProportion * 100).toFixed(2)}%`
-                  : "—"
-                : portfolioSD_result !== null
-                ? portfolioSD_result.toFixed(4)
-                : "—"}
-            </div>
-          </div>
-        );
+          );
 
       case "covariance":
         return (
