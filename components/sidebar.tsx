@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Calculator, Percent, DollarSign, TrendingUp, Scale, Landmark, Coins, Menu, X, LineChart, Banknote, Network, ListTree} from "lucide-react";
+import { Calculator, Percent, DollarSign, TrendingUp, Scale, Landmark, Coins, Menu, X, LineChart, Banknote, Network, ListTree, SlidersHorizontal} from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { CalculatorType } from "@/components/calculator-layout";
 import { ModeToggle } from "@/components/mode-toggle";
@@ -68,6 +68,11 @@ export function Sidebar({ activeCalculator, setActiveCalculator }: SidebarProps)
       id: "risk",
       name: "Risk Calculator",
       icon: <ListTree className="h-5 w-5" />, // Represents interest rates
+    },
+    {
+      id: "wacc",
+      name: "WACC Calculator",
+      icon: <SlidersHorizontal className="h-5 w-5" />, // Represents interest rates
     },
   ];
 

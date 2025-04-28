@@ -12,6 +12,7 @@ import { TradingCalculator } from "./calculators/option-calculator"
 import { CapitalBudgetingCalculator } from "./calculators/capital-budgeting-calculator"
 import { RealOptionsCalculator } from "./calculators/real-options-calculator"
 import { RiskCalculator } from "./calculators/risk-calculator"
+import { WaccCalculator } from "./calculators/wacc-calculator"
 import { Chat } from "./chat"
 import { MessageCircle, X } from "lucide-react"
 import { Button } from "./ui/button"
@@ -27,6 +28,7 @@ export type CalculatorType =
   | "budget"
   | "real-options"
   | "risk"
+  | "wacc"
 
 export function CalculatorLayout() {
   const [activeCalculator, setActiveCalculator] = useState<CalculatorType>("lumpsum")
@@ -54,6 +56,8 @@ export function CalculatorLayout() {
         return <RealOptionsCalculator />
       case "risk":
         return <RiskCalculator />
+      case "wacc":
+        return <WaccCalculator />
     }
   }
 
